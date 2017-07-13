@@ -5,7 +5,25 @@ pytetgen
 This is a python interface to tetgen, a powerful and fast mesh generator (http://wias-berlin.de/software/tetgen/)
 
 This package includes the tetgen source, v.1.5, and provides (so far) minimal bindings to be ables to generate 
-meshes in python. The basic interface follows that of scipy.spatial.Delaunay
+meshes in python. The basic interface follows that of scipy.spatial.Delaunay. More bindings will come soon.
+
+Basic Usage
+===========
+
+	>>> import pytetgen
+	>>> import numpy as np
+	>>> points = np.random.random(4*3).reshape(4,3)
+	>>> tri = pytetgen.Delaunay(points)
+	>>> np.sort(tri.simplices)
+	array([[0, 1, 2, 3]], dtype=int32)
+
+
+Comparison with `scipy.spatial.Delaunay()`
+==========================================
+
+.. image:: https://github.com/Marcello-Sega/pytetgen/raw/gh-pages/pics/scaling.png
+
+
 
 tetgen (and this project) are distributed under the terms of the  GNU Affero General Public Licence (https://www.gnu.org/licenses/agpl-3.0.en.html). Quoting the preamble of the licence:
 
