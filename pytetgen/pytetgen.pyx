@@ -23,8 +23,6 @@ class Delaunay(object):
         [tetgen](http://wias-berlin.de/software/tetgen/)
 
 
-
-
         Examples
         --------
 
@@ -42,26 +40,44 @@ class Delaunay(object):
         Attributes
         ----------
 
-        simplices   :    (ndarray of ints, shape (nsimplex, 4)) 
+        points    :   ndarray of double, shape (npoints, ndim)
+            Coordinates of input points.
+
+        simplices :   (ndarray of ints, shape (nsimplex, 4)) 
             Indices of the points forming the simplices in the triangulation.
+    
+        neighbors :   ndarray of ints, shape (nsimplex, ndim+1)
+            Indices of neighbor simplices for each simplex.
+            The kth neighbor is opposite to the kth vertex.
+            For simplices at the boundary, -1 denotes no neighbor.
 
-        
     """
-    def __init__(self,points):
 
-        b = Tetgenbehavior() 
-        b.quiet = True
+    def __init__(self,points,neighbors=True):
 
-        datain = Tetgenio()
-        dataout= Tetgenio()
+        self._b = Tetgenbehavior() 
+        self._b.quiet = True
+        self._b.neighout = neighbors
 
-        datain.pointlist = points
+        self._datain = Tetgenio()
+        self._dataout= Tetgenio()
 
-        Tetrahedralize(b,datain,dataout,None,None)
+        self._datain.pointlist = points
+        
 
-        self.simplices = np.copy(dataout.tetrahedronlist)
+        Tetrahedralize(self._b,self._datain,self._dataout,None,None)
 
+    @property
+    def simplices(self):
+        return self._dataout.tetrahedronlist
 
+    @property
+    def points(self):
+        return self._datain.pointlist
+
+    @property
+    def neighbors(self):
+        return self._dataout.neighborlist
 
 
 cdef extern from "tetgen.h":
@@ -71,10 +87,12 @@ cdef extern from "tetgen.h":
         int numberofpoints, numberoftetrahedra, numberofcorners,mesh_dim
         double * pointlist
         int * tetrahedronlist
+        int * neighborlist
 
     cdef cppclass tetgenbehavior:
         tetgenbehavior() except+
         int quiet
+        int neighout
 
     cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin)
 
@@ -104,21 +122,26 @@ cdef class Tetgenio:
     def mesh_dim(self):
         return self.c_tetgenio.mesh_dim
 
-
-
     @property
     def numberofcorners(self):
         return self.c_tetgenio.numberofcorners
 
     @property
     def pointlist(self):
-        return np.asarray(<np.float64_t[:self.numberofpoints]> self.c_tetgenio.pointlist)
+        return np.asarray(<np.float64_t[:3*self.numberofpoints]> self.c_tetgenio.pointlist).reshape(self.numberofpoints,3)
 
     @property
     def tetrahedronlist(self):
         cdef int nt = self.c_tetgenio.numberoftetrahedra
         cdef int nc = self.c_tetgenio.numberofcorners
         return np.asarray(<int[:nt*nc]> self.c_tetgenio.tetrahedronlist).reshape(nt,nc)
+
+    @property
+    def neighborlist(self):
+        cdef int nt = self.c_tetgenio.numberoftetrahedra
+        cdef int nc = 4
+        return np.asarray(<int[:nt*nc]> self.c_tetgenio.neighborlist).reshape(nt,nc)
+
 
     @pointlist.setter
     def pointlist(self,val):
@@ -147,6 +170,13 @@ cdef class Tetgenbehavior:
     @quiet.setter
     def quiet(self,val):
         self.c_tetgenbehavior.quiet=val 
+
+    @property
+    def neighout(self):
+        return self.c_tetgenbehavior.neighout
+    @neighout.setter
+    def neighout(self,val):
+        self.c_tetgenbehavior.neighout=val 
 
 
 
