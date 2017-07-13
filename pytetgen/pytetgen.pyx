@@ -9,6 +9,54 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from libc.string cimport memcpy
 
 
+class Delaunay(object):
+    """ Calculate a Delaunay triangulation in 3D from a set of points
+    
+        Parameters
+        ----------
+        points : ndarray of floats, shape (npoints, 3)
+            Coordinates of points to triangulate
+
+
+        References
+        ----------
+        [Tetgen](http://wias-berlin.de/software/tetgen/)
+
+
+        Examples
+        --------
+
+        Triangulation of a set of points:
+        >>> import pytetgen
+        >>> import numpy as np
+        >>> N = 4
+        >>> np.random.seed(seed=1)
+        >>> points = np.random.random(3*N).reshape(N,3)
+        >>> tri = pytetgen.Delaunay(points)
+        >>> delaunay.simplices
+
+        Attributes
+        ----------
+
+        simplices       (ndarray of ints, shape (nsimplex, 4)) Indices of the points forming the simplices in the triangulation.
+        
+    """
+    def __init__(self,points):
+
+        b = Tetgenbehavior() 
+        b.quiet = True
+
+        datain = Tetgenio()
+        dataout= Tetgenio()
+
+        datain.pointlist = points
+
+        Tetrahedralize(b,datain,dataout,None,None)
+
+        self.simplices = np.copy(dataout.tetrahedronlist)
+
+
+
 
 cdef extern from "tetgen.h":
 
@@ -32,20 +80,6 @@ def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,T
                    &(addin.c_tetgenio),
                    &(bgmin.c_tetgenio))
 
-class Delaunay(object):
-    def __init__(self,points):
-
-        b = Tetgenbehavior() 
-        b.quiet = True
-
-        datain = Tetgenio()
-        dataout= Tetgenio()
-
-        datain.pointlist = points
-
-        Tetrahedralize(b,datain,dataout,None,None)
-
-        self.simplices = np.copy(dataout.tetrahedronlist)
 
 cdef class Tetgenio:
     cdef tetgenio c_tetgenio      # hold a C++ instance which we're wrapping
