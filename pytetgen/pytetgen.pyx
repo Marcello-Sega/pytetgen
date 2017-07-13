@@ -20,25 +20,31 @@ class Delaunay(object):
 
         References
         ----------
-        [Tetgen](http://wias-berlin.de/software/tetgen/)
+        [tetgen](http://wias-berlin.de/software/tetgen/)
+
+
 
 
         Examples
         --------
 
         Triangulation of a set of points:
+
         >>> import pytetgen
         >>> import numpy as np
         >>> N = 4
-        >>> np.random.seed(seed=1)
         >>> points = np.random.random(3*N).reshape(N,3)
         >>> tri = pytetgen.Delaunay(points)
-        >>> delaunay.simplices
+        >>> np.sort(tri.simplices)
+        array([[0, 1, 2, 3]], dtype=int32)
+
 
         Attributes
         ----------
 
-        simplices       (ndarray of ints, shape (nsimplex, 4)) Indices of the points forming the simplices in the triangulation.
+        simplices   :    (ndarray of ints, shape (nsimplex, 4)) 
+            Indices of the points forming the simplices in the triangulation.
+
         
     """
     def __init__(self,points):
