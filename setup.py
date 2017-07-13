@@ -1,9 +1,13 @@
+# distutils: include_dirs = tetgen
 from distutils.core import setup,Extension
 from Cython.Build import cythonize
 import numpy as np
+import os 
 import codecs
 
 # Get the long description from the README file
+
+here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
@@ -38,9 +42,9 @@ setup(	name = 'pytetgen',
     	],
 
 	ext_modules = cythonize(
-                       "pytetgen.pyx",                 # our Cython source
-                       sources=["tetgen.cxx","predicates.cxx"],  # additional source file(s)
+                       "pytetgen/pytetgen.pyx",                 # our Cython source
+                       sources=["tetgen/tetgen.cxx","tetgen/predicates.cxx"],  # additional source file(s)
                        language="c++",             # generate C++ code
                     ),
-     	include_dirs = [np.get_include()]
+     	include_dirs = ['./',np.get_include(),'tetgen']
 )
