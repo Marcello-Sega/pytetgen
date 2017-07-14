@@ -38,3 +38,6 @@ Hang Si. 2015. "TetGen, a Delaunay-Based Quality Tetrahedral Mesh Generator". AC
 I guess the author would be glad if you cite him, if you use this wrapper. 
 
 
+See Also
+========
+You might also want to have a look at Pymesh https://github.com/qnzhou/PyMesh  (pymesh2 on the Python Package Index)
