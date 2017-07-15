@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# pytetgen documentation build configuration file, created by
-# sphinx-quickstart on Thu Jul 13 17:49:34 2017.
+# Pytetgen documentation build configuration file, created by
+# sphinx-quickstart on Sat Jul 15 11:56:02 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -34,10 +34,11 @@ extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
     'sphinx.ext.imgmath',
+    'sphinx.ext.viewcode',
     'sphinx.ext.githubpages']
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['.templates']
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -49,7 +50,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'pytetgen'
+project = u'Pytetgen'
 copyright = u'2017, Marcello Sega'
 author = u'Marcello Sega'
 
@@ -67,7 +68,7 @@ release = u'0.1.0'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None 
+language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -97,7 +98,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['.static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -118,7 +119,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pytetgendoc'
+htmlhelp_basename = 'Pytetgendoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -145,7 +146,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pytetgen.tex', u'pytetgen Documentation',
+    (master_doc, 'Pytetgen.tex', u'Pytetgen Documentation',
      u'Marcello Sega', 'manual'),
 ]
 
@@ -155,7 +156,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pytetgen', u'pytetgen Documentation',
+    (master_doc, 'pytetgen', u'Pytetgen Documentation',
      [author], 1)
 ]
 
@@ -166,8 +167,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'pytetgen', u'pytetgen Documentation',
-     author, 'pytetgen', 'One line description of project.',
+    (master_doc, 'Pytetgen', u'Pytetgen Documentation',
+     author, 'Pytetgen', 'One line description of project.',
      'Miscellaneous'),
 ]
 
