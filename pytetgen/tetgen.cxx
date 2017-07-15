@@ -1880,7 +1880,7 @@ bool tetgenio::load_medit(char* filebasename, int istetmesh)
           // Read a non-empty line.
           bufferp = readline(buffer, fp, &line_count);
         }
-        ntets = strtol(bufferp, &bufferp, 0);
+        ntets = (int)strtol(bufferp, &bufferp, 0);
         if (ntets > 0) {
           // It is a tetrahedral mesh.
           numberoftetrahedra = ntets;
@@ -1943,7 +1943,7 @@ bool tetgenio::load_medit(char* filebasename, int istetmesh)
           // Read a non-empty line.
           bufferp = readline(buffer, fp, &line_count);
         }
-        nfaces = strtol(bufferp, &bufferp, 0);
+        nfaces = (int)strtol(bufferp, &bufferp, 0);
         // Allocate memory for 'tetgenio'
         if (nfaces > 0) {
           if (!istetmesh) {
@@ -3892,8 +3892,8 @@ void* tetgenmesh::arraypool::lookup(int objectindex)
 int tetgenmesh::arraypool::newindex(void **newptr)
 {
   // Allocate an object at index 'firstvirgin'.
-  int newindex = objects;
-  *newptr = (void *) (getblock(objects) +
+  int newindex = (int)objects;
+  *newptr = (void *) (getblock((int)objects) +
     (objects & (objectsperblock - 1)) * objectbytes);
   objects++;
 
@@ -4275,7 +4275,7 @@ void tetgenmesh::makepoint2submap(memorypool* pool, int*& idx2faclist,
   }
 
   // Contents in 'idx2faclist' are shifted, now shift them back.
-  for (i = points->items - 1; i >= 0; i--) {
+  for (i = (int)(points->items) - 1; i >= 0; i--) {
     idx2faclist[i + 1] = idx2faclist[i];
   }
   idx2faclist[0] = 0;
@@ -9676,7 +9676,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
             if (!enqflag) {
               sunmarktest(*parysh);
               // Use the last entry of this array to fill this entry.
-              j = caveshlist->objects - 1;
+              j = (int)(caveshlist->objects) - 1;
               checksh = * (face *) fastlookup(caveshlist, j);
               *parysh = checksh;
               cutshcount++;
@@ -9940,7 +9940,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
         if (k == 0) {
           // The segment is not connect to C(p) anymore. Remove it by
           //   Replacing it by the last entry of this list.
-          s = cavetetseglist->objects - 1;
+          s = (int)(cavetetseglist->objects - 1);
           checkseg = * (face *) fastlookup(cavetetseglist, s);
           *paryseg = checkseg;
           cavetetseglist->objects--;
@@ -9986,7 +9986,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
         }
         if (k == 0) {
           // The subface is not connected to C(p). Remove it.
-          s = cavetetshlist->objects - 1;
+          s = (int)(cavetetshlist->objects - 1);
           checksh = * (face *) fastlookup(cavetetshlist, s);
           *parysh = checksh;
           cavetetshlist->objects--;
@@ -10250,7 +10250,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
           paryseg = (face *) fastlookup(cavesegshlist, i);
           checkseg = *paryseg;
           //sstdissolve1(checkseg); // It has not been connected yet.
-          s = randomnation(subsegstack->objects + 1);
+          s = (int)randomnation((int)(subsegstack->objects) + 1);
           subsegstack->newindex((void **) &paryseg);
           *paryseg = * (face *) fastlookup(subsegstack, s); 
           paryseg = (face *) fastlookup(subsegstack, s);
@@ -10264,7 +10264,7 @@ int tetgenmesh::insertpoint(point insertpt, triface *searchtet, face *splitsh,
           checkseg = *paryseg;
           suninfect(checkseg);
           sstdissolve1(checkseg); // Detach connections to old tets.
-          s = randomnation(subsegstack->objects + 1);
+          s = (int)randomnation((int)(subsegstack->objects) + 1);
           subsegstack->newindex((void **) &paryseg);
           *paryseg = * (face *) fastlookup(subsegstack, s); 
           paryseg = (face *) fastlookup(subsegstack, s);
@@ -11051,7 +11051,7 @@ enum tetgenmesh::locateresult tetgenmesh::locate(point searchpt,
       if (oridest < 0) {
         if (oriapex < 0) {
           // All three faces are possible.
-          s = randomnation(3); // 's' is in {0,1,2}.
+          s = (int)randomnation(3); // 's' is in {0,1,2}.
           if (s == 0) {
             nextmove = ORGMOVE;
           } else if (s == 1) {
@@ -14567,7 +14567,7 @@ void tetgenmesh::detectinterfaces()
   // Recursively split the set of triangles into two sets using a cut plane
   //   parallel to x-, or, y-, or z-axis.  Stop splitting when the number
   //   of subfaces is not decreasing anymore. Do tests on the current set.
-  interecursive(subfacearray, subfaces->items, 0, xmin, xmax, ymin, ymax,
+  interecursive(subfacearray, (int)(subfaces->items), 0, xmin, xmax, ymin, ymax,
                 zmin, zmax, &internum);
 
   if (!b->quiet) {
@@ -14773,7 +14773,7 @@ enum tetgenmesh::interresult
       if (rori > 0) {
         if (lori > 0) {
           // Any of the three neighbors is a viable move.
-          s = randomnation(3); 
+          s = (int)randomnation(3); 
           if (s == 0) {
             nextmove = HMOVE;
           } else if (s == 1) {
@@ -15726,7 +15726,7 @@ bool tetgenmesh::formcavity(triface* searchtet, arraypool* missingshs,
               if (k == missingshs->objects) {
                 // Not found such an edge. 
                 // Arbitrarily choose an edge (except the first) to split.
-                k = randomnation(missingshs->objects - 1);
+                k = (int)randomnation((int)(missingshs->objects) - 1);
                 parysh = (face *) fastlookup(missingshs, k + 1);
               }
               recentsh = *parysh;
@@ -15780,7 +15780,7 @@ bool tetgenmesh::formcavity(triface* searchtet, arraypool* missingshs,
     toppoints->restart();
 
     // Randomly split an interior edge of R.
-    i = randomnation(missingshs->objects - 1);
+    i = (int)randomnation((int)(missingshs->objects) - 1);
     recentsh = * (face *) fastlookup(missingshs, i);
     return false;
   }
@@ -16239,7 +16239,7 @@ bool tetgenmesh::fillcavity(arraypool* topshells, arraypool* botshells,
       // No pair of 'toptet' and 'bottet'.
       toptet.tet = NULL;
       // Randomly split an interior edge of R.
-      i = randomnation(missingshs->objects - 1);
+      i = (int)randomnation((int)(missingshs->objects) - 1);
       recentsh = * (face *) fastlookup(missingshs, i);
     }
 
@@ -17597,7 +17597,7 @@ bool tetgenmesh::fillregion(arraypool* missingshs, arraypool* missingshbds,
     // Choose an interior edge of R to split.
     assert(missingshs->objects > 1);
     // Skip the first subface in 'missingshs'.
-    i = randomnation(missingshs->objects - 1) + 1;
+    i = (int)randomnation((int)(missingshs->objects) - 1) + 1;
     parysh = (face *) fastlookup(missingshs, i);
     recentsh = *parysh;
   }
@@ -17805,7 +17805,7 @@ void tetgenmesh::refineregion(face &splitsh, arraypool *cavpoints,
       pointdealloc(steinpt);
       // Split an encroached segment.
       assert(encseglist->objects > 0);
-      i = randomnation(encseglist->objects);
+      i = (int)randomnation((int)(encseglist->objects));
       paryseg = (face *) fastlookup(encseglist, i);
       splitseg = *paryseg;
       encseglist->restart();
@@ -18161,7 +18161,7 @@ void tetgenmesh::constraineddelaunay(clock_t& tv)
   // Put all segments into the list (in random order).
   subsegs->traversalinit();
   for (i = 0; i < subsegs->items; i++) {
-    s = randomnation(i + 1);
+    s = (int)randomnation(i + 1);
     // Move the s-th seg to the i-th.
     subsegstack->newindex((void **) &paryseg);
     *paryseg = * (face *) fastlookup(subsegstack, s);
@@ -18196,7 +18196,7 @@ void tetgenmesh::constraineddelaunay(clock_t& tv)
   // Randomly order the subfaces.
   subfaces->traversalinit();
   for (i = 0; i < subfaces->items; i++) {
-    s = randomnation(i + 1);
+    s = (int)randomnation(i + 1);
     // Move the s-th subface to the i-th.
     subfacstack->newindex((void **) &parysh);
     *parysh = * (face *) fastlookup(subfacstack, s);
@@ -20291,7 +20291,7 @@ int tetgenmesh::reduceedgesatvertex(point startpt, arraypool* endptlist)
       if (reduceflag) {
         count++;
         // Move the last vertex into this slot.
-        j = endptlist->objects - 1;
+        j = (int)endptlist->objects - 1;
         parypt = (point *) fastlookup(endptlist, j);
         *pendpt = *parypt;
         endptlist->objects--;
@@ -20394,7 +20394,7 @@ int tetgenmesh::removevertexbyflips(point steinerpt)
   if (cavetetvertlist->objects > 3l) {
     valence = reduceedgesatvertex(steinerpt, cavetetvertlist);
   } else {
-    valence = cavetetvertlist->objects;
+    valence = (int)cavetetvertlist->objects;
   }
   assert(cavetetlist->objects == 0l);
   cavetetvertlist->restart();
@@ -21598,7 +21598,7 @@ void tetgenmesh::recoverboundary(clock_t& tv)
   // In random order.
   subsegs->traversalinit();
   for (i = 0; i < subsegs->items; i++) {
-    s = randomnation(i + 1);
+    s = (int)randomnation(i + 1);
     // Move the s-th seg to the i-th.
     subsegstack->newindex((void **) &paryseg);
     *paryseg = * (face *) fastlookup(subsegstack, s);
@@ -21773,7 +21773,7 @@ void tetgenmesh::recoverboundary(clock_t& tv)
   // Randomly order the subfaces.
   subfaces->traversalinit();
   for (i = 0; i < subfaces->items; i++) {
-    s = randomnation(i + 1);
+    s = (int)randomnation(i + 1);
     // Move the s-th subface to the i-th.
     subfacstack->newindex((void **) &parysh);
     *parysh = * (face *) fastlookup(subfacstack, s);
@@ -23765,7 +23765,7 @@ void tetgenmesh::collectremovepoints(arraypool *remptlist)
       // Sort the list of points randomly.
       point *parypt_i, swappt;
       int randindex, i;
-      srand(intptlist->objects);
+      srand((int)(intptlist->objects));
       for (i = 0; i < intptlist->objects; i++) {
         randindex = rand() % (i + 1); // randomnation(i + 1);
         parypt_i = (point *) fastlookup(intptlist, i); 
@@ -26252,7 +26252,7 @@ int tetgenmesh::smoothpoint(point smtpt, arraypool *linkfacelist, int ccw,
 
     for (i = 0; i < numdirs; i++) {
       // Randomly pick a link face (0 <= k <= objects - i - 1).
-      k = (int) randomnation(linkfacelist->objects - i);
+      k = (int) randomnation((int)(linkfacelist->objects) - i);
       parytet = (triface *) fastlookup(linkfacelist, k);
       // Calculate a new position from 'p' to the center of this face.
       pa = org(*parytet);
@@ -26321,7 +26321,7 @@ int tetgenmesh::smoothpoint(point smtpt, arraypool *linkfacelist, int ccw,
         for (j = 0; j < 3; j++) bestpt[j] = nextpt[j];
       }
       // Swap k-th and (object-i-1)-th entries.
-      j = linkfacelist->objects - i - 1;
+      j = (int)(linkfacelist->objects) - i - 1;
       parytet  = (triface *) fastlookup(linkfacelist, k);
       parytet1 = (triface *) fastlookup(linkfacelist, j);
       swaptet = *parytet1;
@@ -28720,7 +28720,7 @@ void tetgenmesh::outnodes(tetgenio* out)
         terminatetetgen(this, 1);
       }
     }
-    out->numberofpoints = points->items;
+    out->numberofpoints = (int)( points->items);
     out->numberofpointattributes = nextras;
     coordindex = 0;
     attribindex = 0;
@@ -28978,7 +28978,7 @@ void tetgenmesh::outelements(tetgenio* out)
         terminatetetgen(this, 1);
       }
     }
-    out->numberoftetrahedra = ntets;
+    out->numberoftetrahedra = (int)ntets;
     out->numberofcorners = b->order == 1 ? 4 : 10;
     out->numberoftetrahedronattributes = eextras;
     tlist = out->tetrahedronlist;
@@ -29131,7 +29131,7 @@ void tetgenmesh::outfaces(tetgenio* out)
         terminatetetgen(this, 1);
       }
     }
-    out->numberoftrifaces = faces;
+    out->numberoftrifaces = (int)faces;
     elist = out->trifacelist;
     emlist = out->trifacemarkerlist;
   }
@@ -29291,7 +29291,7 @@ void tetgenmesh::outhullfaces(tetgenio* out)
       printf("Error:  Out of memory.\n");
       terminatetetgen(this, 1);
     }
-    out->numberoftrifaces = hullsize;
+    out->numberoftrifaces = (int)hullsize;
     elist = out->trifacelist;
     index = 0;
   }
@@ -29412,7 +29412,7 @@ void tetgenmesh::outsubfaces(tetgenio* out)
         terminatetetgen(this, 1);
       }
     }
-    out->numberoftrifaces = subfaces->items;
+    out->numberoftrifaces = (int)(subfaces->items);
     elist = out->trifacelist;
     emlist = out->trifacemarkerlist;
   }
@@ -29615,7 +29615,7 @@ void tetgenmesh::outedges(tetgenio* out)
     if (b->neighout > 1) { // '-nn' switch.
       out->edgeadjtetlist = new int[meshedges];
     }
-    out->numberofedges = meshedges;
+    out->numberofedges = (int)meshedges;
     elist = out->edgelist;
     emlist = out->edgemarkerlist;
   }
@@ -29779,7 +29779,7 @@ void tetgenmesh::outsubsegments(tetgenio* out)
     if (b->neighout > 1) {
       out->edgeadjtetlist = new int[subsegs->items];
     }
-    out->numberofedges = subsegs->items;
+    out->numberofedges = (int)(subsegs->items);
     elist = out->edgelist;
   }
 
@@ -30214,7 +30214,7 @@ void tetgenmesh::outvoronoi(tetgenio* out)
     // Number of Voronoi faces.
     fprintf(outfile, "%ld  0\n", edges);
   } else {
-    out->numberofvfacets = edges;
+    out->numberofvfacets = (int)edges;
     out->vfacetlist = new tetgenio::vorofacet[out->numberofvfacets];
     if (out->vfacetlist == (tetgenio::vorofacet *) NULL) {
       terminatetetgen(this, 1);
@@ -30328,7 +30328,7 @@ void tetgenmesh::outvoronoi(tetgenio* out)
     // Number of Voronoi cells.
     fprintf(outfile, "%ld\n", points->items - unuverts - dupverts);
   } else {
-    out->numberofvcells = points->items - unuverts - dupverts;
+    out->numberofvcells = (int)(points->items - unuverts - dupverts);
     out->vcelllist = new int*[out->numberofvcells];
     if (out->vcelllist == (int **) NULL) {
       terminatetetgen(this, 1);
@@ -30715,8 +30715,8 @@ void tetgenmesh::outmesh2vtk(char* ofilename)
     return;
   }
 
-  int NEL = tetrahedrons->items - hullsize;
-  int NN = points->items;
+  int NEL = (int)tetrahedrons->items - (int)hullsize;
+  int NN = (int)(points->items);
 
   if (ofilename != (char *) NULL && ofilename[0] != '\0') {
     strcpy(vtkfilename, ofilename);
@@ -30836,37 +30836,36 @@ void tetgenmesh::outmesh2vtk(char* ofilename)
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
-void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
-                    tetgenio *addin, tetgenio *bgmin)
+void  tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
+                    tetgenio *addin, tetgenio *bgmin, tetgenmesh *m)
 {
-  tetgenmesh m;
   clock_t tv[12], ts[5]; // Timing informations (defined in time.h)
   REAL cps = (REAL) CLOCKS_PER_SEC;
 
   tv[0] = clock();
  
-  m.b = b;
-  m.in = in;
-  m.addin = addin;
+  m->b = b;
+  m->in = in;
+  m->addin = addin;
 
   if (b->metric && bgmin && (bgmin->numberofpoints > 0)) {
-    m.bgm = new tetgenmesh(); // Create an empty background mesh.
-    m.bgm->b = b;
-    m.bgm->in = bgmin;
+    m->bgm = new tetgenmesh(); // Create an empty background mesh.
+    m->bgm->b = b;
+    m->bgm->in = bgmin;
   }
 
-  m.initializepools();
-  m.transfernodes();
+  m->initializepools();
+  m->transfernodes();
 
   exactinit(b->verbose, b->noexact, b->nostaticfilter,
-            m.xmax - m.xmin, m.ymax - m.ymin, m.zmax - m.zmin);
+            m->xmax - m->xmin, m->ymax - m->ymin, m->zmax - m->zmin);
 
   tv[1] = clock();
 
   if (b->refine) { // -r
-    m.reconstructmesh();
+    m->reconstructmesh();
   } else { // -p
-    m.incrementaldelaunay(ts[0]);
+    m->incrementaldelaunay(ts[0]);
   }
 
   tv[2] = clock();
@@ -30883,7 +30882,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (b->plc && !b->refine) { // -p
-    m.meshsurface();
+    m->meshsurface();
 
     ts[0] = clock();
 
@@ -30892,7 +30891,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
 
     if (b->diagnose) { // -d
-      m.detectinterfaces();
+      m->detectinterfaces();
 
       ts[1] = clock();
 
@@ -30901,21 +30900,20 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       }
 
       // Only output when self-intersecting faces exist.
-      if (m.subfaces->items > 0l) {
-        m.outnodes(out);
-        m.outsubfaces(out);
+      if (m->subfaces->items > 0l) {
+        m->outnodes(out);
+        m->outsubfaces(out);
       }
-
       return;
     }
   }
 
   tv[3] = clock();
 
-  if ((b->metric) && (m.bgm != NULL)) { // -m
-    m.bgm->initializepools();
-    m.bgm->transfernodes();
-    m.bgm->reconstructmesh();
+  if ((b->metric) && (m->bgm != NULL)) { // -m
+    m->bgm->initializepools();
+    m->bgm->transfernodes();
+    m->bgm->reconstructmesh();
 
     ts[0] = clock();
 
@@ -30925,7 +30923,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
 
     if (b->metric) { // -m
-      m.interpolatemeshsize();
+      m->interpolatemeshsize();
 
       ts[1] = clock();
 
@@ -30939,9 +30937,9 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (b->plc && !b->refine) { // -p
     if (b->nobisect) { // -Y
-      m.recoverboundary(ts[0]);
+      m->recoverboundary(ts[0]);
     } else {
-      m.constraineddelaunay(ts[0]);
+      m->constraineddelaunay(ts[0]);
     }
 
     ts[1] = clock();
@@ -30959,7 +30957,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       }
     }
 
-    m.carveholes();
+    m->carveholes();
 
     ts[2] = clock();
 
@@ -30968,8 +30966,8 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
 
     if (b->nobisect) { // -Y
-      if (m.subvertstack->objects > 0l) {
-        m.suppresssteinerpoints();
+      if (m->subvertstack->objects > 0l) {
+        m->suppresssteinerpoints();
 
         ts[3] = clock();
 
@@ -30984,7 +30982,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   tv[5] = clock();
 
   if (b->coarsen) { // -R
-    m.meshcoarsening();
+    m->meshcoarsening();
   }
 
   tv[6] = clock();
@@ -30996,7 +30994,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if ((b->plc && b->nobisect) || b->coarsen) {
-    m.recoverdelaunay();
+    m->recoverdelaunay();
   }
 
   tv[7] = clock();
@@ -31009,7 +31007,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if ((b->plc || b->refine) && b->insertaddpoints) { // -i
     if ((addin != NULL) && (addin->numberofpoints > 0)) {
-      m.insertconstrainedpoints(addin); 
+      m->insertconstrainedpoints(addin); 
     }
   }
 
@@ -31024,7 +31022,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (b->quality) {
-    m.delaunayrefinement();    
+    m->delaunayrefinement();    
   }
 
   tv[9] = clock();
@@ -31036,7 +31034,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if ((b->plc || b->refine) && (b->optlevel > 0)) {
-    m.optimizemesh();
+    m->optimizemesh();
   }
 
   tv[10] = clock();
@@ -31047,13 +31045,13 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   }
 
-  if (!b->nojettison && ((m.dupverts > 0) || (m.unuverts > 0)
+  if (!b->nojettison && ((m->dupverts > 0) || (m->unuverts > 0)
       || (b->refine && (in->numberofcorners == 10)))) {
-    m.jettisonnodes();
+    m->jettisonnodes();
   }
 
   if ((b->order == 2) && !b->convex) {
-    m.highorder();
+    m->highorder();
   }
 
   if (!b->quiet) {
@@ -31070,7 +31068,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       printf("NOT writing a .node file.\n");
     }
   } else {
-    m.outnodes(out);
+    m->outnodes(out);
   }
 
   if (b->noelewritten) {
@@ -31078,8 +31076,8 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       printf("NOT writing an .ele file.\n");
     }
   } else {
-    if (m.tetrahedrons->items > 0l) {
-      m.outelements(out);
+    if (m->tetrahedrons->items > 0l) {
+      m->outelements(out);
     }
   }
 
@@ -31089,17 +31087,17 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   } else {
     if (b->facesout) {
-      if (m.tetrahedrons->items > 0l) {
-        m.outfaces(out);  // Output all faces.
+      if (m->tetrahedrons->items > 0l) {
+        m->outfaces(out);  // Output all faces.
       }
     } else {
       if (b->plc || b->refine) {
-        if (m.subfaces->items > 0l) {
-          m.outsubfaces(out); // Output boundary faces.
+        if (m->subfaces->items > 0l) {
+          m->outsubfaces(out); // Output boundary faces.
         }
       } else {
-        if (m.tetrahedrons->items > 0l) {
-          m.outhullfaces(out); // Output convex hull faces.
+        if (m->tetrahedrons->items > 0l) {
+          m->outhullfaces(out); // Output convex hull faces.
         }
       }
     }
@@ -31112,40 +31110,40 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   } else {
     if (b->edgesout) { // -e
-      m.outedges(out); // output all mesh edges. 
+      m->outedges(out); // output all mesh edges. 
     } else {
       if (b->plc || b->refine) {
-        m.outsubsegments(out); // output subsegments.
+        m->outsubsegments(out); // output subsegments.
       }
     }
   }
 
   if ((b->plc || b->refine) && b->metric) { // -m
-    m.outmetrics(out);
+    m->outmetrics(out);
   }
 
   if (!out && b->plc && 
       ((b->object == tetgenbehavior::OFF) ||
        (b->object == tetgenbehavior::PLY) ||
        (b->object == tetgenbehavior::STL))) {
-    m.outsmesh(b->outfilename);
+    m->outsmesh(b->outfilename);
   }
 
   if (!out && b->meditview) {
-    m.outmesh2medit(b->outfilename); 
+    m->outmesh2medit(b->outfilename); 
   }
 
 
   if (!out && b->vtkview) {
-    m.outmesh2vtk(b->outfilename); 
+    m->outmesh2vtk(b->outfilename); 
   }
 
   if (b->neighout) {
-    m.outneighbors(out);
+    m->outneighbors(out);
   }
 
   if ((!(b->plc || b->refine)) && b->voroout) {
-    m.outvoronoi(out);
+    m->outvoronoi(out);
   }
 
 
@@ -31157,19 +31155,20 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (b->docheck) {
-    m.checkmesh(0);
+    m->checkmesh(0);
     if (b->plc || b->refine) {
-      m.checkshells();
-      m.checksegments();
+      m->checkshells();
+      m->checksegments();
     }
     if (b->docheck > 1) {
-      m.checkdelaunay();
+      m->checkdelaunay();
     }
   }
 
   if (!b->quiet) {
-    m.statistics();
+    m->statistics();
   }
+  return;
 }
 
 #ifndef TETLIBRARY
@@ -31191,13 +31190,13 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////
 
 void tetrahedralize(char *switches, tetgenio *in, tetgenio *out, 
-                    tetgenio *addin, tetgenio *bgmin)
+                    tetgenio *addin, tetgenio *bgmin, tetgenmesh * m)
 
 #endif // not TETLIBRARY
 
 {
   tetgenbehavior b;
-
+  printf("calling that\n");
 #ifndef TETLIBRARY
 
   tetgenio in, addin, bgmin;
@@ -31224,17 +31223,16 @@ void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
     // Try to read a background mesh in files .b.node, .b.ele.
     bgmin.load_tetmesh(b.bgmeshfilename, (int) b.object);
   }
-
-  tetrahedralize(&b, &in, NULL, &addin, &bgmin);
-
-  return 0;
+  tetrahedralize(&b, &in, NULL, &addin, &bgmin, m);
+  return;
 
 #else // with TETLIBRARY
 
   if (!b.parse_commandline(switches)) {
     terminatetetgen(NULL, 10);
   }
-  tetrahedralize(&b, in, out, addin, bgmin);
+  tetrahedralize(&b, in, out, addin, bgmin,m); 
+  return;
 
 #endif // not TETLIBRARY
 }

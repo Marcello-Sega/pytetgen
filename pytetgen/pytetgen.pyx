@@ -1,8 +1,8 @@
-#!/usr/bin/python
 # -*- Mode: python; tab-width: 4; indent-tabs-mode:nil; coding: utf-8 -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 # distutils: language=c++
-# distutils: sources = pytetgen/tetgen.cxx pytetgen/predicates.cxx
+# distutils: sources=pytetgen/tetgen.cxx pytetgen/predicates.cxx
+
 cimport numpy as np
 import numpy as np
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
@@ -45,6 +45,8 @@ class Delaunay(object):
 
         simplices :   (ndarray of ints, shape (nsimplex, 4)) 
             Indices of the points forming the simplices in the triangulation.
+
+        vertices : deprecated alias for simplices
     
         neighbors :   ndarray of ints, shape (nsimplex, ndim+1)
             Indices of neighbor simplices for each simplex.
@@ -61,14 +63,37 @@ class Delaunay(object):
 
         self._datain = Tetgenio()
         self._dataout= Tetgenio()
+        self._m = Tetgenmesh()
 
-        self._datain.pointlist = points
-        
+        self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
 
-        Tetrahedralize(self._b,self._datain,self._dataout,None,None)
+        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
+
+    def find_simplex(self,xi,bruteforce=False,tol=None):
+        """ Find the simplices containing the given points.
+
+            Parameters
+            ----------
+            xi: ndarray of doubles, shape (npoints, 3)
+                Coordinates of points to locate
+            bruteforce: bool, optional
+                Does nothing, for compatibility with scipy.spatial.Delaunay
+            tol: float, optional
+                Does nothing, for compatibility with scipy.spatial.Delaunay 
+
+            Returns
+            -------
+            i : ndarray of int, same shape as xi
+                Indices of simplices containing each point. Points outside the triangulation get the value -1.
+        """    
+        return self._m.locate(xi)
 
     @property
     def simplices(self):
+        return self._dataout.tetrahedronlist
+
+    @property
+    def vertices(self):
         return self._dataout.tetrahedronlist
 
     @property
@@ -84,6 +109,7 @@ cdef extern from "tetgen.h":
 
     cdef cppclass tetgenio:
         tetgenio() except+
+        
         int numberofpoints, numberoftetrahedra, numberofcorners,mesh_dim
         double * pointlist
         int * tetrahedronlist
@@ -94,16 +120,47 @@ cdef extern from "tetgen.h":
         int quiet
         int neighout
 
-    cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin)
+    cdef cppclass tetgenmesh:
+        ctypedef double **tetrahedron 
+        tetgenmesh() except+
+        cppclass triface:
+            triface() except+
+            tetrahedron *tet
+        int elemindex(tetrahedron* ptr)
+        int locate(double *searchpt, tetgenmesh.triface* searchtet)
 
 
-def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,Tetgenio addin, Tetgenio bgmin):
+    cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin, tetgenmesh *m)
+
+
+def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,Tetgenio addin, Tetgenio bgmin, Tetgenmesh m):
     tetrahedralize(&(behavior.c_tetgenbehavior),
                    &(data_in.c_tetgenio),
                    &(data_out.c_tetgenio),
                    &(addin.c_tetgenio),
-                   &(bgmin.c_tetgenio))
+                   &(bgmin.c_tetgenio),
+                   &(m.c_tetgenmesh))
 
+cdef class Tetgenmesh:
+    cdef tetgenmesh c_tetgenmesh
+
+    def __cinit__(self):
+        self.c_tetgenmesh = tetgenmesh()
+
+    def locate(self,searchpt):
+        cdef int npoints = searchpt.shape[0]
+        val = np.ascontiguousarray(searchpt.flatten())
+        res = np.empty(npoints,dtype=np.int32)
+        cdef np.float64_t[:] val_v = val
+        cdef np.int32_t[:] res_v = res
+        cdef tetgenmesh.triface searchtet 
+        searchtet.tet = NULL
+        cdef int i
+        cdef int ret
+        for i in range(npoints):
+            ret = self.c_tetgenmesh.locate(<double*> (&val_v[3*i]),&searchtet)
+            res_v[i] = self.c_tetgenmesh.elemindex(searchtet.tet)
+        return res
 
 cdef class Tetgenio:
     cdef tetgenio c_tetgenio      # hold a C++ instance which we're wrapping
@@ -148,7 +205,7 @@ cdef class Tetgenio:
         # the numpy end 
         flatval = np.ascontiguousarray(val.flatten())
         cdef int npoints = flatval.shape[0]
-        self.c_tetgenio.numberofpoints = npoints / 3
+        self.c_tetgenio.numberofpoints = npoints / <int>3
         cdef int size = 3*sizeof(double)*self.c_tetgenio.numberofpoints
         cdef np.float64_t[:] view = flatval
         try:
@@ -178,7 +235,4 @@ cdef class Tetgenbehavior:
     def neighout(self,val):
         self.c_tetgenbehavior.neighout=val 
 
-
-
-#cdef tetrahedralize(behavior,data_in,data_out,addin,bgmin):
 
