@@ -37,6 +37,22 @@ class Delaunay(object):
         array([[0, 1, 2, 3]], dtype=int32)
 
 
+        Searching for neighboring tetrahedra (-1 means no neighbor).
+        In the following example, the first tetrahedron has two neighbors,
+        with index 1 and 2.
+        
+        >>> points = np.array([1,1,1, 1,-1,-1, -1,1,-1, -1,-1,1,-1,-1,-1],dtype=np.float64).reshape(5,3)
+        >>> tri = pytetgen.Delaunay(points)
+        >>> print tri.neighbors[0]
+        [-1  2  1 -1]
+    
+        Searching for the tetrahedra containing a set of points. Two 
+        are withing the triangulation, and the third is out
+
+        >>> p = np.array([[0.,0.,0.],[0.,0,-0.5],[50.,0.,1.]])
+        >>> print tri.find_simplex(p)
+        [ 2  1 -1]
+
         Attributes
         ----------
 
@@ -122,6 +138,7 @@ cdef extern from "tetgen.h":
 
     cdef cppclass tetgenmesh:
         ctypedef double **tetrahedron 
+
         tetgenmesh() except+
         cppclass triface:
             triface() except+
@@ -144,8 +161,36 @@ def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,T
 cdef class Tetgenmesh:
     cdef tetgenmesh c_tetgenmesh
 
+    cdef int UNKNOWN
+    cdef int OUTSIDE
+    cdef int INTETRAHEDRON
+    cdef int ONFACE
+    cdef int ONEDGE
+    cdef int ONVERTEX
+    cdef int ENCVERTEX
+    cdef int ENCSEGMENT
+    cdef int ENCSUBFACE
+    cdef int NEARVERTEX
+    cdef int NONREGULAR
+    cdef int INSTAR
+    cdef int BADELEMENT
+
+
     def __cinit__(self):
         self.c_tetgenmesh = tetgenmesh()
+        self.UNKNOWN = 0
+        self.OUTSIDE = 1
+        self.INTETRAHEDRON = 2
+        self.ONFACE = 3
+        self.ONEDGE = 4 
+        self.ONVERTEX = 5
+        self.ENCVERTEX = 6 
+        self.ENCSEGMENT = 7
+        self.ENCSUBFACE = 8 
+        self.NEARVERTEX = 9 
+        self.NONREGULAR = 10
+        self.INSTAR = 11
+        self.BADELEMENT = 12 
 
     def locate(self,searchpt):
         cdef int npoints = searchpt.shape[0]
@@ -155,11 +200,14 @@ cdef class Tetgenmesh:
         cdef np.int32_t[:] res_v = res
         cdef tetgenmesh.triface searchtet 
         searchtet.tet = NULL
-        cdef int i
-        cdef int ret
+        cdef int i,ret
+
         for i in range(npoints):
-            ret = self.c_tetgenmesh.locate(<double*> (&val_v[3*i]),&searchtet)
-            res_v[i] = self.c_tetgenmesh.elemindex(searchtet.tet)
+            ret = <int>self.c_tetgenmesh.locate(<double*> (&val_v[3*i]),&searchtet)
+            if ret == self.OUTSIDE:
+                res_v[i] = <int>-1
+            else:
+                res_v[i] = self.c_tetgenmesh.elemindex(searchtet.tet)
         return res
 
 cdef class Tetgenio:

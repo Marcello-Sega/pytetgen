@@ -1242,9 +1242,9 @@ public:
                     COLLISIONFACE, ACROSSSEG, ACROSSSUB};
 
   // Labels that signify the result of point location.
-  enum locateresult {UNKNOWN, OUTSIDE, INTETRAHEDRON, ONFACE, ONEDGE, ONVERTEX,
-                     ENCVERTEX, ENCSEGMENT, ENCSUBFACE, NEARVERTEX, NONREGULAR,
-                     INSTAR, BADELEMENT};
+  enum locateresult {UNKNOWN=0, OUTSIDE=1, INTETRAHEDRON=2, ONFACE=3, ONEDGE=4, ONVERTEX=5,
+                     ENCVERTEX=6, ENCSEGMENT=7, ENCSUBFACE=8, NEARVERTEX=9, NONREGULAR=10,
+                     INSTAR=11, BADELEMENT=12};
 
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //
