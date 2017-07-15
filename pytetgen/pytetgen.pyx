@@ -69,12 +69,16 @@ class Delaunay(object):
             The kth neighbor is opposite to the kth vertex.
             For simplices at the boundary, -1 denotes no neighbor.
 
+        weights :   ndarray of double, shape (npoints, ndim)
+            Coordinates of input points.
+
     """
 
-    def __init__(self,points,neighbors=True):
+    def __init__(self,points,neighbors=True,weights=None):
 
         self._b = Tetgenbehavior() 
         self._b.quiet = True
+        self._b.weighted = False
         self._b.neighout = neighbors
 
         self._datain = Tetgenio()
@@ -82,6 +86,14 @@ class Delaunay(object):
         self._m = Tetgenmesh()
 
         self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
+        if weights is not None:
+            if len(weights) != self._datain.numberofpoints:
+                raise ValueError("weights must be in the same number of points")
+            self._datain.pointattributelist = np.ascontiguousarray(weights,dtype=np.float64)
+            self._b.weighted = True
+        else:
+            self._datain.pointattributelist = None
+            
 
         Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
 
@@ -117,6 +129,10 @@ class Delaunay(object):
         return self._datain.pointlist
 
     @property
+    def weights(self):
+        return self._datain.pointattributelist
+
+    @property
     def neighbors(self):
         return self._dataout.neighborlist
 
@@ -127,13 +143,16 @@ cdef extern from "tetgen.h":
         tetgenio() except+
         
         int numberofpoints, numberoftetrahedra, numberofcorners,mesh_dim
+        int numberofpointattributes
         double * pointlist
+        double * pointattributelist
         int * tetrahedronlist
         int * neighborlist
 
     cdef cppclass tetgenbehavior:
         tetgenbehavior() except+
         int quiet
+        int weighted
         int neighout
 
     cdef cppclass tetgenmesh:
@@ -212,12 +231,17 @@ cdef class Tetgenmesh:
 
 cdef class Tetgenio:
     cdef tetgenio c_tetgenio      # hold a C++ instance which we're wrapping
+
     def __cinit__(self):
         self.c_tetgenio = tetgenio()
 
     @property
     def numberofpoints(self):
         return self.c_tetgenio.numberofpoints
+
+    @property
+    def numberofpointattributes(self):
+        return self.c_tetgenio.numberofpointattributes
 
     @property
     def numberoftetrahedra(self):
@@ -234,6 +258,12 @@ cdef class Tetgenio:
     @property
     def pointlist(self):
         return np.asarray(<np.float64_t[:3*self.numberofpoints]> self.c_tetgenio.pointlist).reshape(self.numberofpoints,3)
+
+    @property
+    def pointattributelist(self):
+        if self.c_tetgenio.pointattributelist == NULL:
+            return None
+        return np.asarray(<np.float64_t[:self.numberofpoints]> self.c_tetgenio.pointattributelist)
 
     @property
     def tetrahedronlist(self):
@@ -263,6 +293,25 @@ cdef class Tetgenio:
         self.c_tetgenio.pointlist = <double*>PyMem_Malloc(size)
         memcpy(self.c_tetgenio.pointlist, <double*> (&view[0]), size)
 
+    @pointattributelist.setter
+    def pointattributelist(self,val):
+        # the numpy end 
+        if isinstance(val,type(None)):
+            self.c_tetgenio.pointattributelist = NULL
+            return
+        flatval = np.ascontiguousarray(val.flatten())
+        cdef int npoints = flatval.shape[0]
+        cdef int size = sizeof(double)*npoints
+        cdef np.float64_t[:] view = flatval
+        try:
+            PyMem_Free(self.c_tetgenio.pointattributelist)
+        except:
+            pass
+        self.c_tetgenio.pointattributelist = <double*>PyMem_Malloc(size)
+        memcpy(self.c_tetgenio.pointattributelist, <double*> (&view[0]), size)
+
+
+
 
 cdef class Tetgenbehavior:
     cdef tetgenbehavior c_tetgenbehavior # hold a C++ instance which we're wrapping
@@ -272,9 +321,19 @@ cdef class Tetgenbehavior:
     @property
     def quiet(self):
         return self.c_tetgenbehavior.quiet
+
     @quiet.setter
     def quiet(self,val):
         self.c_tetgenbehavior.quiet=val 
+
+    @property
+    def weighted(self):
+        return self.c_tetgenbehavior.weighted
+
+    @weighted.setter
+    def weighted(self,val):
+        self.c_tetgenbehavior.weighted=val 
+
 
     @property
     def neighout(self):
