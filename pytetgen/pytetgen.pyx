@@ -69,8 +69,10 @@ class Delaunay(object):
             The kth neighbor is opposite to the kth vertex.
             For simplices at the boundary, -1 denotes no neighbor.
 
-        weights :   ndarray of double, shape (npoints, ndim)
-            Coordinates of input points.
+        weights :   ndarray of double, shape (npoints, )
+            Value of the weights associated to each point, or None. 
+            If not None, a regular triangulation (weighted Delaunay) 
+            is performed, instead of the plain Delaunay triangulation
 
     """
 
