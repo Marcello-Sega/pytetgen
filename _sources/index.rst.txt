@@ -1,9 +1,9 @@
-.. pytetgen documentation master file, created by
-   sphinx-quickstart on Thu Jul 13 17:49:34 2017.
+.. Pytetgen documentation master file, created by
+   sphinx-quickstart on Sat Jul 15 11:56:02 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pytetgen's documentation!
+Welcome to Pytetgen's documentation!
 ====================================
 
 .. toctree::

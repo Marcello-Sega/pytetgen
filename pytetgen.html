@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>pytetgen module &#8212; pytetgen 0.1.0 documentation</title>
+    <title>pytetgen module &#8212; Pytetgen 0.1.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -38,9 +38,9 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-pytetgen">
-<span id="pytetgen-module"></span><h1>pytetgen module<a class="headerlink" href="#module-pytetgen" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
+  <div class="section" id="pytetgen-module">
+<h1>pytetgen module<a class="headerlink" href="#pytetgen-module" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-pytetgen"></span><dl class="class">
 <dt id="pytetgen.Delaunay">
 <em class="property">class </em><code class="descclassname">pytetgen.</code><code class="descname">Delaunay</code><a class="headerlink" href="#pytetgen.Delaunay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
@@ -66,11 +66,92 @@
 <span class="go">array([[0, 1, 2, 3]], dtype=int32)</span>
 </pre></div>
 </div>
+<p>Searching for neighboring tetrahedra (-1 means no neighbor).
+In the following example, the first tetrahedron has two neighbors,
+with index 1 and 2.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">tri</span> <span class="o">=</span> <span class="n">pytetgen</span><span class="o">.</span><span class="n">Delaunay</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">tri</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="go">[-1  2  1 -1]</span>
+</pre></div>
+</div>
+<p>Searching for the tetrahedra containing a set of points. Two
+are withing the triangulation, and the third is out</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">0.</span><span class="p">],[</span><span class="mf">0.</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mf">0.5</span><span class="p">],[</span><span class="mf">50.</span><span class="p">,</span><span class="mf">0.</span><span class="p">,</span><span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span> <span class="n">tri</span><span class="o">.</span><span class="n">find_simplex</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="go">[ 2  1 -1]</span>
+</pre></div>
+</div>
+<dl class="attribute">
+<dt id="pytetgen.Delaunay.points">
+<code class="descname">points</code><a class="headerlink" href="#pytetgen.Delaunay.points" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>ndarray of double, shape (npoints, ndim)</em> – Coordinates of input points.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pytetgen.Delaunay.simplices">
 <code class="descname">simplices</code><a class="headerlink" href="#pytetgen.Delaunay.simplices" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>(ndarray of ints, shape (nsimplex, 4))</em> – Indices of the points forming the simplices in the triangulation.</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="pytetgen.Delaunay.vertices">
+<code class="descname">vertices</code><a class="headerlink" href="#pytetgen.Delaunay.vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>deprecated alias for simplices</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pytetgen.Delaunay.neighbors">
+<code class="descname">neighbors</code><a class="headerlink" href="#pytetgen.Delaunay.neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>ndarray of ints, shape (nsimplex, ndim+1)</em> – Indices of neighbor simplices for each simplex.
+The kth neighbor is opposite to the kth vertex.
+For simplices at the boundary, -1 denotes no neighbor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pytetgen.Delaunay.find_simplex">
+<code class="descname">find_simplex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pytetgen.Delaunay.find_simplex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the simplices containing the given points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xi</strong> (<em>ndarray of doubles</em><em>, </em><em>shape</em><em> (</em><em>npoints</em><em>, </em><em>3</em><em>)</em>) – Coordinates of points to locate</li>
+<li><strong>bruteforce</strong> (<em>bool</em><em>, </em><em>optional</em>) – Does nothing, for compatibility with scipy.spatial.Delaunay</li>
+<li><strong>tol</strong> (<em>float</em><em>, </em><em>optional</em>) – Does nothing, for compatibility with scipy.spatial.Delaunay</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>i</strong> – Indices of simplices containing each point. Points outside the triangulation get the value -1.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray of int, same shape as xi</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">neighbors</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">points</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">simplices</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">vertices</code></dt>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -78,6 +159,11 @@
 <dt id="pytetgen.Tetgenbehavior">
 <em class="property">class </em><code class="descclassname">pytetgen.</code><code class="descname">Tetgenbehavior</code><a class="headerlink" href="#pytetgen.Tetgenbehavior" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="pytetgen.Tetgenbehavior.neighout">
+<code class="descname">neighout</code><a class="headerlink" href="#pytetgen.Tetgenbehavior.neighout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="pytetgen.Tetgenbehavior.quiet">
 <code class="descname">quiet</code><a class="headerlink" href="#pytetgen.Tetgenbehavior.quiet" title="Permalink to this definition">¶</a></dt>
@@ -92,6 +178,11 @@
 <dl class="attribute">
 <dt id="pytetgen.Tetgenio.mesh_dim">
 <code class="descname">mesh_dim</code><a class="headerlink" href="#pytetgen.Tetgenio.mesh_dim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pytetgen.Tetgenio.neighborlist">
+<code class="descname">neighborlist</code><a class="headerlink" href="#pytetgen.Tetgenio.neighborlist" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -121,6 +212,17 @@
 
 </dd></dl>
 
+<dl class="class">
+<dt id="pytetgen.Tetgenmesh">
+<em class="property">class </em><code class="descclassname">pytetgen.</code><code class="descname">Tetgenmesh</code><a class="headerlink" href="#pytetgen.Tetgenmesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="pytetgen.Tetgenmesh.locate">
+<code class="descname">locate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pytetgen.Tetgenmesh.locate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="pytetgen.Tetrahedralize">
 <code class="descclassname">pytetgen.</code><code class="descname">Tetrahedralize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pytetgen.Tetrahedralize" title="Permalink to this definition">¶</a></dt>
@@ -134,7 +236,7 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-<h1 class="logo"><a href="index.html">pytetgen</a></h1>
+<h1 class="logo"><a href="index.html">Pytetgen</a></h1>
 
 
 

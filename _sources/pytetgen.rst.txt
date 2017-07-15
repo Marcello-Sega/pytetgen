@@ -5,6 +5,3 @@ pytetgen module
     :members:
     :undoc-members:
     :show-inheritance:
-
-
-
