@@ -53,6 +53,9 @@ class Delaunay(object):
         >>> print tri.find_simplex(p)
         [ 2  1 -1]
 
+        Write the triangulation to an unstructured mesh in vtk format
+        >>> tri.writevtk('tri.vtk')
+
         Attributes
         ----------
 
@@ -118,6 +121,17 @@ class Delaunay(object):
         """    
         return self._m.locate(xi)
 
+    def writevtk(self,filename):
+        self._m.Outmesh2vtk(filename.encode())
+        """ Write the mesh to a vtk file
+
+            Parameters
+            ----------
+
+            filename: string
+
+        """
+
     @property
     def simplices(self):
         return self._dataout.tetrahedronlist
@@ -154,6 +168,7 @@ cdef extern from "tetgen.h":
     cdef cppclass tetgenbehavior:
         tetgenbehavior() except+
         int quiet
+        char * outfilename
         int weighted
         int neighout
 
@@ -164,6 +179,7 @@ cdef extern from "tetgen.h":
         cppclass triface:
             triface() except+
             tetrahedron *tet
+        void outmesh2vtk(char* ofilename)
         int elemindex(tetrahedron* ptr)
         int locate(double *searchpt, tetgenmesh.triface* searchtet)
 
@@ -230,6 +246,11 @@ cdef class Tetgenmesh:
             else:
                 res_v[i] = self.c_tetgenmesh.elemindex(searchtet.tet)
         return res
+
+    def Outmesh2vtk(self, filename):
+        if filename[-4:]=='.vtk':
+            filename = filename[:-4]
+        self.c_tetgenmesh.outmesh2vtk(filename)
 
 cdef class Tetgenio:
     cdef tetgenio c_tetgenio      # hold a C++ instance which we're wrapping
