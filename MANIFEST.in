@@ -1,0 +1,7 @@
+include README.rst
+include pytetgen/pytetgen.pyx
+include pytetgen/pytetgen.cpp
+include pytetgen/tetgen.h
+include pytetgen/tetgen.cxx
+include pytetgen/predicates.cxx
+
