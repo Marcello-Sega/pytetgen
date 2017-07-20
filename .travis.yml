@@ -1,11 +1,5 @@
 language: python
 
-branches:
-  except:
-  - dev
-  - extended_datafiles
-
-
 matrix:
     include:
         - os: linux
@@ -14,6 +8,7 @@ matrix:
 
 install:
 - pip install cython
+- pip install Sphinx>=1.4.3
 - pip install .
-# command to run tests
 
+script: (cd docs ; make doctest)
