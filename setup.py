@@ -1,6 +1,8 @@
 # distutils: include_dirs = pytetgen
 # distutils: language=c++
-from distutils.core import setup,Extension
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
 from Cython.Build import cythonize
 import numpy as np
 import os 
@@ -12,8 +14,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+
+
+
 setup(	name = 'pytetgen',
-	version = '0.1.1',
+	version = '0.1.2',
 	description = 'wrapper for the tetgen mesh generator',
 	long_description=long_description,
 	author = 'Marcello Sega',
@@ -41,11 +46,11 @@ setup(	name = 'pytetgen',
        		# that you indicate whether you support Python 2, Python 3 or both.
        		'Programming Language :: Python :: 2.7',
     	],
-	sourcefiles = ['pytetgen/pytetgen.pyx'],
-	ext_modules = cythonize(
-                       "pytetgen/pytetgen.pyx",                 # our Cython source
-                       sources=["tetgen/tetgen.cxx","tetgen/predicates.cxx"],  # additional source file(s)
-                       language="c++",             # generate C++ code
-                    ),
-     	include_dirs = ['./',np.get_include(),'tetgen']
+        ext_modules=[
+              Extension('pytetgen', 
+                 sources=['pytetgen/pytetgen.pyx','pytetgen/tetgen.cxx','pytetgen/predicates.cxx'],
+		 include_dirs=[np.get_include()],
+                 language='c++')
+        ],
+        cmdclass = {'build_ext': build_ext},
 )
