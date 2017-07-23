@@ -92,11 +92,13 @@ class Delaunay(object):
 
         self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
         if weights is not None:
+            self._datain.numberofpointattributes = 1
             if len(weights) != self._datain.numberofpoints:
                 raise ValueError("weights must be in the same number of points")
             self._datain.pointattributelist = np.ascontiguousarray(weights,dtype=np.float64)
             self._b.weighted = True
         else:
+            self._datain.numberofpointattributes = 0
             self._datain.pointattributelist = None
             
 
@@ -265,6 +267,10 @@ cdef class Tetgenio:
     @property
     def numberofpointattributes(self):
         return self.c_tetgenio.numberofpointattributes
+
+    @numberofpointattributes.setter
+    def numberofpointattributes(self,val):
+        self.c_tetgenio.numberofpointattributes = <int>val
 
     @property
     def numberoftetrahedra(self):

@@ -48,8 +48,10 @@ setup(	name = 'pytetgen',
     	],
         ext_modules=[
               Extension('pytetgen', 
-                 sources=['pytetgen/pytetgen.pyx','pytetgen/tetgen.cxx','pytetgen/predicates.cxx'],
+                 undef_macros=['NDEBUG'],
+                 sources=['pytetgen/tetgen.cpp','pytetgen/predicates.cpp','pytetgen/pytetgen.pyx'],
 		 include_dirs=[np.get_include()],
+		 extra_compile_args=['-g0','-O3','-ffast-math'],
                  language='c++')
         ],
         cmdclass = {'build_ext': build_ext},
