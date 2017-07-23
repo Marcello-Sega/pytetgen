@@ -170,6 +170,7 @@ cdef extern from "tetgen.h":
     cdef cppclass tetgenbehavior:
         tetgenbehavior() except+
         int quiet
+        int noexact
         char * outfilename
         int weighted
         int neighout
@@ -354,6 +355,15 @@ cdef class Tetgenbehavior:
     @quiet.setter
     def quiet(self,val):
         self.c_tetgenbehavior.quiet=val 
+
+    @property
+    def noexact(self):
+        return self.c_tetgenbehavior.noexact
+
+    @noexact.setter
+    def noexact(self,val):
+        self.c_tetgenbehavior.noexact=val 
+
 
     @property
     def weighted(self):

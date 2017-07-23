@@ -48,9 +48,9 @@ setup(	name = 'pytetgen',
     	],
         ext_modules=[
               Extension('pytetgen', 
-                 sources=['pytetgen/tetgen.pyx','pytetgen/predicates.cpp','pytetgen/pytetgen.pyx'],
+                 sources=['pytetgen/tetgen.cxx','pytetgen/predicates.cxx','pytetgen/pytetgen.pyx'],
 		 include_dirs=[np.get_include()],
-		 extra_compile_args=['-g0','-O0'],
+		 extra_compile_args=['-g0','-O3'],
                  language='c++')
         ],
         cmdclass = {'build_ext': build_ext},
