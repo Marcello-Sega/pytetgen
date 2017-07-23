@@ -8,7 +8,6 @@ import numpy as np
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from libc.string cimport memcpy
 
-
 class Delaunay(object):
     """ Calculate a Delaunay triangulation in 3D from a set of points
     
@@ -79,10 +78,13 @@ class Delaunay(object):
 
     """
 
-    def __init__(self,points,neighbors=True,weights=None):
+    def __init__(self,points,neighbors=True,weights=None,_use_predicates=False,_quiet=True):
 
         self._b = Tetgenbehavior() 
-        self._b.quiet = True
+        if _use_predicates == True:
+            self._b.noexact = False
+            self._b.nostaticfilter = True
+        self._b.quiet = _quiet 
         self._b.nonodewritten = True
         self._b.weighted = False
         self._b.neighout = neighbors
@@ -155,6 +157,7 @@ class Delaunay(object):
         return self._dataout.neighborlist
 
 
+
 cdef extern from "tetgen.h":
 
     cdef cppclass tetgenio:
@@ -174,6 +177,7 @@ cdef extern from "tetgen.h":
         int noelewritten
         int nofacewritten
         int noexact
+        int nostaticfilter
         char * outfilename
         int weighted
         int neighout
@@ -382,6 +386,14 @@ cdef class Tetgenbehavior:
 
     @noexact.setter
     def noexact(self,val):
+        self.c_tetgenbehavior.noexact=val 
+
+    @property
+    def nostaticfilter(self):
+        return self.c_tetgenbehavior.nostaticfilter
+
+    @nostaticfilter.setter
+    def nostaticfilter(self,val):
         self.c_tetgenbehavior.noexact=val 
 
 

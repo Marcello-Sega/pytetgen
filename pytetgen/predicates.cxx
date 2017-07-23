@@ -4112,7 +4112,6 @@ REAL insphere(REAL *pa, REAL *pb, REAL *pc, REAL *pd, REAL *pe)
     //if (det < minus_ispstaticfilter) return det;
 
   }
-
   REAL aezplus, bezplus, cezplus, dezplus;
   REAL aexbeyplus, bexaeyplus, bexceyplus, cexbeyplus;
   REAL cexdeyplus, dexceyplus, dexaeyplus, aexdeyplus;

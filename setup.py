@@ -51,7 +51,7 @@ setup(	name = 'pytetgen',
                  sources=['pytetgen/tetgen.cxx','pytetgen/predicates.cxx','pytetgen/pytetgen.pyx'],
 		 include_dirs=[np.get_include()],
 		 extra_compile_args=['-g0','-O3'],
-                 language='c++')
+                 language='c++'),
         ],
         cmdclass = {'build_ext': build_ext},
 )
