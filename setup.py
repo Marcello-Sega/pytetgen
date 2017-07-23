@@ -18,6 +18,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 
 setup(	name = 'pytetgen',
+	packages=['pytetgen'],
 	version = '0.1.3',
 	description = 'wrapper for the tetgen mesh generator',
 	long_description=long_description,
@@ -50,7 +51,7 @@ setup(	name = 'pytetgen',
               Extension('pytetgen', 
                  sources=['pytetgen/tetgen.cxx','pytetgen/predicates.cxx','pytetgen/pytetgen.pyx'],
 		 include_dirs=[np.get_include()],
-		 extra_compile_args=['-g0','-O3'],
+		 extra_compile_args=['-g0','-O0'],
                  language='c++'),
         ],
         cmdclass = {'build_ext': build_ext},
