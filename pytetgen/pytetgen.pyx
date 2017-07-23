@@ -83,11 +83,12 @@ class Delaunay(object):
 
         self._b = Tetgenbehavior() 
         self._b.quiet = True
+        self._b.nonodewritten = True
         self._b.weighted = False
         self._b.neighout = neighbors
 
         self._datain = Tetgenio()
-        self._dataout= Tetgenio()
+        self._dataout = Tetgenio()
 
         self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
         if weights is not None:
@@ -97,9 +98,7 @@ class Delaunay(object):
             self._datain.pointattributelist = np.ascontiguousarray(weights,dtype=np.float64)
             self._b.weighted = True
         else:
-            self._datain.numberofpointattributes = 1
-            self._datain.pointattributelist = np.zeros(self._datain.numberofpoints,dtype=np.float64)
-            
+            self._b.weighted = False
 
         Tetrahedralize(self._b,self._datain,self._dataout,None,None)
 
@@ -171,6 +170,9 @@ cdef extern from "tetgen.h":
     cdef cppclass tetgenbehavior:
         tetgenbehavior() except+
         int quiet
+        int nonodewritten
+        int noelewritten
+        int nofacewritten
         int noexact
         char * outfilename
         int weighted
@@ -191,12 +193,8 @@ cdef extern from "tetgen.h":
     cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin)
 
 
-def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,Tetgenio addin, Tetgenio bgmin):
-    tetrahedralize(&(behavior.c_tetgenbehavior),
-                   &(data_in.c_tetgenio),
-                   &(data_out.c_tetgenio),
-                   &(addin.c_tetgenio),
-                   &(bgmin.c_tetgenio))
+def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out, addin, bgmin):
+    tetrahedralize(&(behavior.c_tetgenbehavior), &(data_in.c_tetgenio),&(data_out.c_tetgenio),NULL,NULL)
 
 cdef class Tetgenmesh:
     cdef tetgenmesh c_tetgenmesh
@@ -310,7 +308,7 @@ cdef class Tetgenio:
 
     @pointlist.setter
     def pointlist(self,val):
-        # the numpy end 
+
         flatval = np.ascontiguousarray(val.flatten())
         cdef int npoints = flatval.shape[0]
         self.c_tetgenio.numberofpoints = npoints / <int>3
@@ -351,6 +349,32 @@ cdef class Tetgenbehavior:
     @quiet.setter
     def quiet(self,val):
         self.c_tetgenbehavior.quiet=val 
+
+    @property
+    def nonodewritten(self):
+        return self.c_tetgenbehavior.nonodewritten
+
+    @nonodewritten.setter
+    def nonodewritten(self,val):
+        self.c_tetgenbehavior.nonodewritten=val 
+
+    @property
+    def noelewritten(self):
+        return self.c_tetgenbehavior.noelewritten
+
+    @noelewritten.setter
+    def noelewritten(self,val):
+        self.c_tetgenbehavior.noelewritten=val 
+
+    @property
+    def nofacewritten(self):
+        return self.c_tetgenbehavior.nofacewritten
+
+    @nofacewritten.setter
+    def nofacewritten(self,val):
+        self.c_tetgenbehavior.nofacewritten=val 
+
+
 
     @property
     def noexact(self):
