@@ -88,7 +88,6 @@ class Delaunay(object):
 
         self._datain = Tetgenio()
         self._dataout= Tetgenio()
-        self._m = Tetgenmesh()
 
         self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
         if weights is not None:
@@ -98,11 +97,11 @@ class Delaunay(object):
             self._datain.pointattributelist = np.ascontiguousarray(weights,dtype=np.float64)
             self._b.weighted = True
         else:
-            self._datain.numberofpointattributes = 0
-            self._datain.pointattributelist = None
+            self._datain.numberofpointattributes = 1
+            self._datain.pointattributelist = np.zeros(self._datain.numberofpoints,dtype=np.float64)
             
 
-        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
+        Tetrahedralize(self._b,self._datain,self._dataout,None,None)
 
     def find_simplex(self,xi,bruteforce=False,tol=None):
         """ Find the simplices containing the given points.
@@ -148,7 +147,9 @@ class Delaunay(object):
 
     @property
     def weights(self):
-        return self._datain.pointattributelist
+        if self._b.weighted == True:
+            return self._datain.pointattributelist
+        return None
 
     @property
     def neighbors(self):
@@ -187,16 +188,15 @@ cdef extern from "tetgen.h":
         int locate(double *searchpt, tetgenmesh.triface* searchtet)
 
 
-    cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin, tetgenmesh *m)
+    cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin)
 
 
-def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,Tetgenio addin, Tetgenio bgmin, Tetgenmesh m):
+def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out,Tetgenio addin, Tetgenio bgmin):
     tetrahedralize(&(behavior.c_tetgenbehavior),
                    &(data_in.c_tetgenio),
                    &(data_out.c_tetgenio),
                    &(addin.c_tetgenio),
-                   &(bgmin.c_tetgenio),
-                   &(m.c_tetgenmesh))
+                   &(bgmin.c_tetgenio))
 
 cdef class Tetgenmesh:
     cdef tetgenmesh c_tetgenmesh
@@ -325,10 +325,6 @@ cdef class Tetgenio:
 
     @pointattributelist.setter
     def pointattributelist(self,val):
-        # the numpy end 
-        if isinstance(val,type(None)):
-            self.c_tetgenio.pointattributelist = NULL
-            return
         flatval = np.ascontiguousarray(val.flatten())
         cdef int npoints = flatval.shape[0]
         cdef int size = sizeof(double)*npoints
