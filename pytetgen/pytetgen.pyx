@@ -91,6 +91,7 @@ class Delaunay(object):
 
         self._datain = Tetgenio()
         self._dataout = Tetgenio()
+        self._m = Tetgenmesh()
 
         self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
         if weights is not None:
@@ -102,7 +103,7 @@ class Delaunay(object):
         else:
             self._b.weighted = False
 
-        Tetrahedralize(self._b,self._datain,self._dataout,None,None)
+        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
 
     def find_simplex(self,xi,bruteforce=False,tol=None):
         """ Find the simplices containing the given points.
@@ -195,11 +196,14 @@ cdef extern from "tetgen.h":
         int locate(double *searchpt, tetgenmesh.triface* searchtet)
 
 
-    cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin)
+    cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin, tetgenmesh *m)
 
 
-def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out, addin, bgmin):
-    tetrahedralize(&(behavior.c_tetgenbehavior), &(data_in.c_tetgenio),&(data_out.c_tetgenio),NULL,NULL)
+def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out, addin, bgmin, Tetgenmesh m):
+    tetrahedralize(&(behavior.c_tetgenbehavior),
+		   &(data_in.c_tetgenio),
+                   &(data_out.c_tetgenio),
+                   NULL,NULL,&(m.c_tetgenmesh))
 
 cdef class Tetgenmesh:
     cdef tetgenmesh c_tetgenmesh
@@ -236,6 +240,8 @@ cdef class Tetgenmesh:
         self.BADELEMENT = 12 
 
     def locate(self,searchpt):
+        if len(searchpt.shape) == 1: # a single point
+            searchpt = searchpt.reshape((1,searchpt.shape[0]))
         cdef int npoints = searchpt.shape[0]
         val = np.ascontiguousarray(searchpt.flatten())
         res = np.empty(npoints,dtype=np.int32)

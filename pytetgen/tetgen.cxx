@@ -31233,36 +31233,35 @@ void tetgenmesh::outmesh2vtk(char* ofilename)
 ///////////////////////////////////////////////////////////////////////////////
 
 void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
-                    tetgenio *addin, tetgenio *bgmin)
+                    tetgenio *addin, tetgenio *bgmin, tetgenmesh *m)
 {
-  tetgenmesh m;
   clock_t tv[12], ts[5]; // Timing informations (defined in time.h)
   REAL cps = (REAL) CLOCKS_PER_SEC;
 
   tv[0] = clock();
  
-  m.b = b;
-  m.in = in;
-  m.addin = addin;
+  m->b = b;
+  m->in = in;
+  m->addin = addin;
 
   if (b->metric && bgmin && (bgmin->numberofpoints > 0)) {
-    m.bgm = new tetgenmesh(); // Create an empty background mesh.
-    m.bgm->b = b;
-    m.bgm->in = bgmin;
+    m->bgm = new tetgenmesh(); // Create an empty background mesh.
+    m->bgm->b = b;
+    m->bgm->in = bgmin;
   }
 
-  m.initializepools();
-  m.transfernodes();
+  m->initializepools();
+  m->transfernodes();
 
   exactinit(b->verbose, b->noexact, b->nostaticfilter,
-            m.xmax - m.xmin, m.ymax - m.ymin, m.zmax - m.zmin);
+            m->xmax - m->xmin, m->ymax - m->ymin, m->zmax - m->zmin);
 
   tv[1] = clock();
 
   if (b->refine) { // -r
-    m.reconstructmesh();
+    m->reconstructmesh();
   } else { // -p
-    m.incrementaldelaunay(ts[0]);
+    m->incrementaldelaunay(ts[0]);
   }
 
   tv[2] = clock();
@@ -31279,7 +31278,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (b->plc && !b->refine) { // -p
-    m.meshsurface();
+    m->meshsurface();
 
     ts[0] = clock();
 
@@ -31288,7 +31287,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
 
     if (b->diagnose) { // -d
-      m.detectinterfaces();
+      m->detectinterfaces();
 
       ts[1] = clock();
 
@@ -31297,9 +31296,9 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       }
 
       // Only output when self-intersecting faces exist.
-      if (m.subfaces->items > 0l) {
-        m.outnodes(out);
-        m.outsubfaces(out);
+      if (m->subfaces->items > 0l) {
+        m->outnodes(out);
+        m->outsubfaces(out);
       }
 
       return;
@@ -31308,10 +31307,10 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   tv[3] = clock();
 
-  if ((b->metric) && (m.bgm != NULL)) { // -m
-    m.bgm->initializepools();
-    m.bgm->transfernodes();
-    m.bgm->reconstructmesh();
+  if ((b->metric) && (m->bgm != NULL)) { // -m
+    m->bgm->initializepools();
+    m->bgm->transfernodes();
+    m->bgm->reconstructmesh();
 
     ts[0] = clock();
 
@@ -31321,7 +31320,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
 
     if (b->metric) { // -m
-      m.interpolatemeshsize();
+      m->interpolatemeshsize();
 
       ts[1] = clock();
 
@@ -31335,9 +31334,9 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if (b->plc && !b->refine) { // -p
     if (b->nobisect) { // -Y
-      m.recoverboundary(ts[0]);
+      m->recoverboundary(ts[0]);
     } else {
-      m.constraineddelaunay(ts[0]);
+      m->constraineddelaunay(ts[0]);
     }
 
     ts[1] = clock();
@@ -31355,7 +31354,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       }
     }
 
-    m.carveholes();
+    m->carveholes();
 
     ts[2] = clock();
 
@@ -31364,8 +31363,8 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
 
     if (b->nobisect) { // -Y
-      if (m.subvertstack->objects > 0l) {
-        m.suppresssteinerpoints();
+      if (m->subvertstack->objects > 0l) {
+        m->suppresssteinerpoints();
 
         ts[3] = clock();
 
@@ -31380,7 +31379,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   tv[5] = clock();
 
   if (b->coarsen) { // -R
-    m.meshcoarsening();
+    m->meshcoarsening();
   }
 
   tv[6] = clock();
@@ -31392,7 +31391,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if ((b->plc && b->nobisect) || b->coarsen) {
-    m.recoverdelaunay();
+    m->recoverdelaunay();
   }
 
   tv[7] = clock();
@@ -31405,7 +31404,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
 
   if ((b->plc || b->refine) && b->insertaddpoints) { // -i
     if ((addin != NULL) && (addin->numberofpoints > 0)) {
-      m.insertconstrainedpoints(addin); 
+      m->insertconstrainedpoints(addin); 
     }
   }
 
@@ -31420,7 +31419,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (b->quality) {
-    m.delaunayrefinement();    
+    m->delaunayrefinement();    
   }
 
   tv[9] = clock();
@@ -31432,7 +31431,7 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if ((b->plc || b->refine) && (b->optlevel > 0)) {
-    m.optimizemesh();
+    m->optimizemesh();
   }
 
   tv[10] = clock();
@@ -31443,13 +31442,13 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   }
 
-  if (!b->nojettison && ((m.dupverts > 0) || (m.unuverts > 0)
+  if (!b->nojettison && ((m->dupverts > 0) || (m->unuverts > 0)
       || (b->refine && (in->numberofcorners == 10)))) {
-    m.jettisonnodes();
+    m->jettisonnodes();
   }
 
   if ((b->order == 2) && !b->convex) {
-    m.highorder();
+    m->highorder();
   }
 
   if (!b->quiet) {
@@ -31466,17 +31465,17 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
       printf("NOT writing a .node file.\n");
     }
   } else {
-    m.outnodes(out);
+    m->outnodes(out);
   }
 
   if (b->noelewritten) {
     if (!b->quiet) {
       printf("NOT writing an .ele file.\n");
     }
-    m.indexelements();
+    m->indexelements();
   } else {
-    if (m.tetrahedrons->items > 0l) {
-      m.outelements(out);
+    if (m->tetrahedrons->items > 0l) {
+      m->outelements(out);
     }
   }
 
@@ -31486,17 +31485,17 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   } else {
     if (b->facesout) {
-      if (m.tetrahedrons->items > 0l) {
-        m.outfaces(out);  // Output all faces.
+      if (m->tetrahedrons->items > 0l) {
+        m->outfaces(out);  // Output all faces.
       }
     } else {
       if (b->plc || b->refine) {
-        if (m.subfaces->items > 0l) {
-          m.outsubfaces(out); // Output boundary faces.
+        if (m->subfaces->items > 0l) {
+          m->outsubfaces(out); // Output boundary faces.
         }
       } else {
-        if (m.tetrahedrons->items > 0l) {
-          m.outhullfaces(out); // Output convex hull faces.
+        if (m->tetrahedrons->items > 0l) {
+          m->outhullfaces(out); // Output convex hull faces.
         }
       }
     }
@@ -31509,40 +31508,40 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
     }
   } else {
     if (b->edgesout) { // -e
-      m.outedges(out); // output all mesh edges. 
+      m->outedges(out); // output all mesh edges. 
     } else {
       if (b->plc || b->refine) {
-        m.outsubsegments(out); // output subsegments.
+        m->outsubsegments(out); // output subsegments.
       }
     }
   }
 
   if ((b->plc || b->refine) && b->metric) { // -m
-    m.outmetrics(out);
+    m->outmetrics(out);
   }
 
   if (!out && b->plc && 
       ((b->object == tetgenbehavior::OFF) ||
        (b->object == tetgenbehavior::PLY) ||
        (b->object == tetgenbehavior::STL))) {
-    m.outsmesh(b->outfilename);
+    m->outsmesh(b->outfilename);
   }
 
   if (!out && b->meditview) {
-    m.outmesh2medit(b->outfilename); 
+    m->outmesh2medit(b->outfilename); 
   }
 
 
   if (!out && b->vtkview) {
-    m.outmesh2vtk(b->outfilename); 
+    m->outmesh2vtk(b->outfilename); 
   }
 
   if (b->neighout) {
-    m.outneighbors(out);
+    m->outneighbors(out);
   }
 
   if (b->voroout) {
-    m.outvoronoi(out);
+    m->outvoronoi(out);
   }
 
 
@@ -31554,19 +31553,20 @@ void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out,
   }
 
   if (b->docheck) {
-    m.checkmesh(0);
+    m->checkmesh(0);
     if (b->plc || b->refine) {
-      m.checkshells();
-      m.checksegments();
+      m->checkshells();
+      m->checksegments();
     }
     if (b->docheck > 1) {
-      m.checkdelaunay();
+      m->checkdelaunay();
     }
   }
 
   if (!b->quiet) {
-    m.statistics();
+    m->statistics();
   }
+  return;
 }
 
 #ifndef TETLIBRARY
@@ -31588,7 +31588,7 @@ int main(int argc, char *argv[])
 ///////////////////////////////////////////////////////////////////////////////
 
 void tetrahedralize(char *switches, tetgenio *in, tetgenio *out, 
-                    tetgenio *addin, tetgenio *bgmin)
+                    tetgenio *addin, tetgenio *bgmin, tetgenmesh * m)
 
 #endif // not TETLIBRARY
 
@@ -31622,7 +31622,7 @@ void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
     bgmin.load_tetmesh(b.bgmeshfilename, (int) b.object);
   }
 
-  tetrahedralize(&b, &in, NULL, &addin, &bgmin);
+  tetrahedralize(&b, &in, NULL, &addin, &bgmin,m);
 
   return 0;
 
@@ -31631,7 +31631,7 @@ void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
   if (!b.parse_commandline(switches)) {
     terminatetetgen(NULL, 10);
   }
-  tetrahedralize(&b, in, out, addin, bgmin);
+  tetrahedralize(&b, in, out, addin, bgmin,m);
 
 #endif // not TETLIBRARY
 }

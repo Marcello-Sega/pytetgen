@@ -2280,11 +2280,11 @@ public:
 ///////////////////////////////////////////////////////////////////////////////
 
 void tetrahedralize(tetgenbehavior *b, tetgenio *in, tetgenio *out, 
-                    tetgenio *addin = NULL, tetgenio *bgmin = NULL);
+                    tetgenio *addin = NULL, tetgenio *bgmin = NULL, tetgenmesh *m=NULL);
 
 #ifdef TETLIBRARY
 void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
-                    tetgenio *addin = NULL, tetgenio *bgmin = NULL);
+                    tetgenio *addin = NULL, tetgenio *bgmin = NULL,tetgenmesh *m=NULL);
 #endif // #ifdef TETLIBRARY
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -2295,6 +2295,10 @@ void tetrahedralize(char *switches, tetgenio *in, tetgenio *out,
 
 inline void terminatetetgen(tetgenmesh *m, int x)
 {
+  // Release the allocated memory.
+  if (m) {
+    m->freememory();
+  }
 #ifdef TETLIBRARY
   throw x;
 #else
