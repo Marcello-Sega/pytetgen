@@ -160,6 +160,8 @@ class Delaunay(object):
 
 cdef extern from "tetgen.h":
 
+    ctypedef double **tetrahedron 
+
     cdef cppclass tetgenio:
         tetgenio() except+
         
@@ -183,7 +185,6 @@ cdef extern from "tetgen.h":
         int neighout
 
     cdef cppclass tetgenmesh:
-        ctypedef double **tetrahedron 
 
         tetgenmesh() except+
         cppclass triface:
