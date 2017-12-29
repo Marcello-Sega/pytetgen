@@ -8,6 +8,91 @@ import numpy as np
 from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
 from libc.string cimport memcpy
 
+ctypedef struct voroedge:
+    int v1
+    int v2
+    double vnormal[3]
+
+ctypedef struct vorofacet:
+    int c1
+    int c2
+    int *elist
+
+class Voronoi(object):
+    def __init__(self,points,_use_predicates=False,_quiet=True):
+
+        self._ridge_dict = None
+        self._regions = None
+        self._b = Tetgenbehavior() 
+        if _use_predicates == True:
+            self._b.noexact = False
+            self._b.nostaticfilter = True
+        self._b.quiet = _quiet 
+        self._b.nonodewritten = True
+        self._b.weighted = False
+        self._b.neighout = False
+
+        self._b.voroout = True
+
+        self._datain = Tetgenio()
+        self._dataout = Tetgenio()
+        self._m = Tetgenmesh()
+        
+        self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
+        if points.shape[1]!=3:
+            raise ValueError("Only 3d arrays are supported so far")
+        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m,points.shape[1])
+
+    @property
+    def nvertices(self):
+        return self._dataout.numberofvpoints
+
+    @property
+    def vertices(self):
+        return self._dataout.vpointlist
+
+    @property
+    def nridges(self):
+        return self._dataout.numberofvedges
+
+    # Note that in scipy.spatial.Voronoi (qhull) ridges in 3d are facets
+    def _compute_ridge_dict(self):
+        if self._ridge_dict is None:
+            self._ridge_dict , self._ridge_list = self._dataout.ridge_dict()
+
+    @property
+    def regions(self):
+        if self._regions is not None:
+            return self._regions
+        self._compute_ridge_dict()
+        self._regions = self._dataout.regions(self._ridge_list)
+        return self._regions
+
+    @property
+    def ridge_dict(self):
+        self._compute_ridge_dict()
+        return self._ridge_dict
+
+    @property
+    def ridge_points(self):
+        self._compute_ridge_dict()
+        return np.asarray(self._ridge_dict.keys())
+
+    @property
+    def ridge_vertices(self):
+        self._compute_ridge_dict()
+        return self._ridge_dict.values()
+
+
+    @property
+    def npoints(self):
+        return self._datain.numberofpoints
+
+    @property
+    def points(self):
+        return self._datain.pointlist
+
+
 class Delaunay(object):
     """ Calculate a Delaunay triangulation in 3D from a set of points
     
@@ -103,7 +188,10 @@ class Delaunay(object):
         else:
             self._b.weighted = False
 
-        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
+        self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
+        if points.shape[1]!=3:
+            raise ValueError("Only 3d arrays are supported so far")
+        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m,points.shape[1])
 
     def find_simplex(self,xi,bruteforce=False,tol=None):
         """ Find the simplices containing the given points.
@@ -157,6 +245,13 @@ class Delaunay(object):
     def neighbors(self):
         return self._dataout.neighborlist
 
+    @property
+    def npoints(self):
+        return self._datain.numberofpoints
+
+    @property
+    def dim(self):
+        return self._datain.mesh_dim
 
 
 cdef extern from "tetgen.h":
@@ -165,10 +260,21 @@ cdef extern from "tetgen.h":
 
     cdef cppclass tetgenio:
         tetgenio() except+
-        
+
+        ctypedef voroedge voroedge
+        ctypedef vorofacet vorofacet
+
         int numberofpoints, numberoftetrahedra, numberofcorners,mesh_dim
+        int numberofvpoints
+        int numberofvedges
+        int numberofvfacets
+        int numberofvcells
         int numberofpointattributes
+        voroedge * vedgelist
+        vorofacet * vfacetlist
+        int ** vcelllist
         double * pointlist
+        double * vpointlist
         double * pointattributelist
         int * tetrahedronlist
         int * neighborlist
@@ -184,6 +290,7 @@ cdef extern from "tetgen.h":
         char * outfilename
         int weighted
         int neighout
+        int voroout
 
     cdef cppclass tetgenmesh:
 
@@ -199,11 +306,12 @@ cdef extern from "tetgen.h":
     cdef void tetrahedralize(tetgenbehavior *b, tetgenio *data_in, tetgenio *data_out,tetgenio *addin, tetgenio *bgmin, tetgenmesh *m)
 
 
-def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out, addin, bgmin, Tetgenmesh m):
+def Tetrahedralize(Tetgenbehavior behavior, Tetgenio data_in,Tetgenio data_out, addin, bgmin, Tetgenmesh m, dim):
     tetrahedralize(&(behavior.c_tetgenbehavior),
 		   &(data_in.c_tetgenio),
                    &(data_out.c_tetgenio),
                    NULL,NULL,&(m.c_tetgenmesh))
+
 
 cdef class Tetgenmesh:
     cdef tetgenmesh c_tetgenmesh
@@ -264,6 +372,7 @@ cdef class Tetgenmesh:
             filename = filename[:-4]
         self.c_tetgenmesh.outmesh2vtk(filename)
 
+
 cdef class Tetgenio:
     cdef tetgenio c_tetgenio      # hold a C++ instance which we're wrapping
 
@@ -273,6 +382,22 @@ cdef class Tetgenio:
     @property
     def numberofpoints(self):
         return self.c_tetgenio.numberofpoints
+
+    @property
+    def numberofvpoints(self):
+        return self.c_tetgenio.numberofvpoints
+
+    @property
+    def numberofvedges(self):
+        return self.c_tetgenio.numberofvedges
+
+    @property
+    def numberofvfacets(self):
+        return self.c_tetgenio.numberofvfacets
+
+    @property
+    def numberofvcells(self):
+        return self.c_tetgenio.numberofvcells
 
     @property
     def numberofpointattributes(self):
@@ -297,6 +422,58 @@ cdef class Tetgenio:
     @property
     def pointlist(self):
         return np.asarray(<np.float64_t[:3*self.numberofpoints]> self.c_tetgenio.pointlist).reshape(self.numberofpoints,3)
+
+    @property
+    def vpointlist(self):
+        return np.asarray(<np.float64_t[:3*self.numberofvpoints]> self.c_tetgenio.vpointlist).reshape(self.numberofvpoints,3)
+
+    @property
+    def vedgelist(self):
+        return np.asarray(<voroedge[:self.numberofvedges]> self.c_tetgenio.vedgelist)
+
+
+    def regions(self,ridge_list):
+        cdef int i 
+        cdef int j
+        cdef int k
+        cdef int nfacets
+        cdef int facet
+
+        _regions = []
+        for i in range(self.numberofvcells):
+            nfacets =  self.c_tetgenio.vcelllist[i][0]
+            region_dict = {}
+            for j in range(1,nfacets+1):
+                facet =  self.c_tetgenio.vcelllist[i][j]
+                if facet > -1:
+                    for vertex in ridge_list[facet]:
+                        region_dict[vertex]=''
+                else:
+                    region_dict[-1]=''
+            _regions.append(region_dict.keys())
+        return _regions
+
+    def ridge_dict(self):
+        cdef int i 
+        cdef int j
+        cdef int nridges
+        _ridge_dict  = {}
+        _ridge_list = []
+        for i in range(self.numberofvfacets):
+            vf = self.c_tetgenio.vfacetlist[i]
+            nridges = vf.elist[0]
+            L = {}
+            for j in range(1,nridges+1):
+                if vf.elist[j] > -1: # no bound check here, if elist[j]==-1, vedgelist will point nowhere
+                    ve = self.c_tetgenio.vedgelist[vf.elist[j]]
+                    L[ve.v1]=''
+                    L[ve.v2]=''
+                else:
+                    L[-1]=''
+            _ridge_dict[(vf.c1,vf.c2)] =  L.keys()
+            _ridge_list.append(L.keys())
+        return _ridge_dict,_ridge_list
+        
 
     @property
     def pointattributelist(self):
@@ -385,8 +562,6 @@ cdef class Tetgenbehavior:
     def nofacewritten(self,val):
         self.c_tetgenbehavior.nofacewritten=val 
 
-
-
     @property
     def noexact(self):
         return self.c_tetgenbehavior.noexact
@@ -412,12 +587,19 @@ cdef class Tetgenbehavior:
     def weighted(self,val):
         self.c_tetgenbehavior.weighted=val 
 
-
     @property
     def neighout(self):
         return self.c_tetgenbehavior.neighout
+
     @neighout.setter
     def neighout(self,val):
         self.c_tetgenbehavior.neighout=val 
 
+    @property
+    def voroout(self):
+        return self.c_tetgenbehavior.voroout
+
+    @voroout.setter
+    def voroout(self,val):
+        self.c_tetgenbehavior.voroout=val 
 
