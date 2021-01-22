@@ -5,6 +5,11 @@ matrix:
         - os: linux
           sudo: required
           python: 2.7
+        - os: linux
+          sudo: required
+          python: 3.8
+        - os: windows
+          python: 3.8
 
 install:
 - pip install cython
