@@ -8,12 +8,10 @@ matrix:
         - os: linux
           sudo: required
           python: 3.8
-        - os: windows
-          python: 3.8
 
 install:
 - pip install cython
 - pip install Sphinx>=1.4.3
-- pip install .
+- pip install --compile .
 
 script: (cd docs ; make doctest)
