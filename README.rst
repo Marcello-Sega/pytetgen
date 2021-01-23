@@ -2,10 +2,14 @@
 pytetgen
 ========
 
+.. image:: https://api.travis-ci.com/Marcello-Sega/pytetgen.svg?branch=master
+   :alt: Build Status
+   :target: https://travis-ci.com/Marcello-Sega/pytetgen
+
 This is a python interface to tetgen, a powerful and fast mesh generator (http://wias-berlin.de/software/tetgen/)
 
 This package includes the tetgen source, v.1.5, and provides (so far) minimal bindings to be ables to generate 
-meshes in python. The basic interface follows that of scipy.spatial.Delaunay. More bindings will come soon.
+meshes in python. The basic interface follows (and can be used to replace) that of `scipy.spatial.Delaunay <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.Delaunay.html>`_.
 
 Basic Usage
 ===========
@@ -40,4 +44,7 @@ I guess the author would be glad if you cite him, if you use this wrapper.
 
 See Also
 ========
-You might also want to have a look at Pymesh https://github.com/qnzhou/PyMesh  (pymesh2 on the Python Package Index)
+You might also want to have a look at:
+
+- Pymesh https://github.com/qnzhou/PyMesh  (pymesh2 on the Python Package Index)
+- Pyvista/tetgen https://github.com/pyvista/tetgen/

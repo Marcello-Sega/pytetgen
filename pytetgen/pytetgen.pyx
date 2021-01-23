@@ -5,7 +5,7 @@
 
 cimport numpy as np
 import numpy as np
-from cpython.mem cimport PyMem_Malloc, PyMem_Realloc, PyMem_Free
+from cpython.mem cimport PyMem_RawMalloc, PyMem_RawRealloc, PyMem_RawFree
 from libc.string cimport memcpy
 
 class Delaunay(object):
@@ -42,14 +42,14 @@ class Delaunay(object):
         
         >>> points = np.array([1,1,1, 1,-1,-1, -1,1,-1, -1,-1,1,-1,-1,-1],dtype=np.float64).reshape(5,3)
         >>> tri = pytetgen.Delaunay(points)
-        >>> print tri.neighbors[0]
+        >>> print(tri.neighbors[0])
         [-1  2  1 -1]
     
         Searching for the tetrahedra containing a set of points. Two 
         are withing the triangulation, and the third is out
 
         >>> p = np.array([[0.,0.,0.],[0.,0,-0.5],[50.,0.,1.]])
-        >>> print tri.find_simplex(p)
+        >>> print(tri.find_simplex(p))
         [ 2  1 -1]
 
         Write the triangulation to an unstructured mesh in vtk format
@@ -92,7 +92,6 @@ class Delaunay(object):
         self._datain = Tetgenio()
         self._dataout = Tetgenio()
         self._m = Tetgenmesh()
-
         self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
         if weights is not None:
             self._datain.numberofpointattributes = 1
@@ -319,17 +318,16 @@ cdef class Tetgenio:
 
     @pointlist.setter
     def pointlist(self,val):
-
         flatval = np.ascontiguousarray(val.flatten())
         cdef int npoints = flatval.shape[0]
         self.c_tetgenio.numberofpoints = npoints / <int>3
         cdef int size = 3*sizeof(double)*self.c_tetgenio.numberofpoints
         cdef np.float64_t[:] view = flatval
         try:
-            PyMem_Free(self.c_tetgenio.pointlist)
+            PyMem_RawFree(self.c_tetgenio.pointlist)
         except:
             pass
-        self.c_tetgenio.pointlist = <double*>PyMem_Malloc(size)
+        self.c_tetgenio.pointlist = <double*>PyMem_RawMalloc(size)
         memcpy(self.c_tetgenio.pointlist, <double*> (&view[0]), size)
 
     @pointattributelist.setter
@@ -339,10 +337,10 @@ cdef class Tetgenio:
         cdef int size = sizeof(double)*npoints
         cdef np.float64_t[:] view = flatval
         try:
-            PyMem_Free(self.c_tetgenio.pointattributelist)
+            PyMem_RawFree(self.c_tetgenio.pointattributelist)
         except:
             pass
-        self.c_tetgenio.pointattributelist = <double*>PyMem_Malloc(size)
+        self.c_tetgenio.pointattributelist = <double*>PyMem_RawMalloc(size)
         memcpy(self.c_tetgenio.pointattributelist, <double*> (&view[0]), size)
 
 
