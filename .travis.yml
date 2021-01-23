@@ -4,7 +4,10 @@ matrix:
     include:
         - os: linux
           sudo: required
-          python: 2.7
+          python: 3.6
+        - os: linux
+          sudo: required
+          python: 3.8
 
 install:
 - pip install cython

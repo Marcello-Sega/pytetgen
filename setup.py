@@ -45,11 +45,12 @@ setup(	name = 'pytetgen',
 
        		# Specify the Python versions you support here. In particular, ensure
        		# that you indicate whether you support Python 2, Python 3 or both.
-       		'Programming Language :: Python :: 2.7',
+       		'Programming Language :: Python :: 3',
     	],
         ext_modules=[
               Extension('pytetgen', 
                  sources=['pytetgen/tetgen.cxx','pytetgen/predicates.cxx','pytetgen/pytetgen.pyx'],
+                 compiler_directives={'language_level':3},
 		 include_dirs=[np.get_include()],
 		 extra_compile_args=['-g0','-O0','-DTETLIBRARY'],
                  language='c++'),
