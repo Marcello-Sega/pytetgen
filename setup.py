@@ -19,7 +19,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(	name = 'pytetgen',
 	packages=['pytetgen'],
-	version = '0.1.4',
+	version = '0.2.0',
 	description = 'wrapper for the tetgen mesh generator',
 	long_description=long_description,
 	author = 'Marcello Sega',
@@ -31,7 +31,7 @@ setup(	name = 'pytetgen',
        		#   3 - Alpha
        		#   4 - Beta
        		#   5 - Production/Stable
-       		'Development Status :: 3 - Alpha',
+       		'Development Status :: 4 - Beta',
 
        		# Indicate who your project is intended for
        		'Intended Audience :: Science/Research',
@@ -45,11 +45,12 @@ setup(	name = 'pytetgen',
 
        		# Specify the Python versions you support here. In particular, ensure
        		# that you indicate whether you support Python 2, Python 3 or both.
-       		'Programming Language :: Python :: 2.7',
+       		'Programming Language :: Python :: 3',
     	],
         ext_modules=[
               Extension('pytetgen', 
                  sources=['pytetgen/tetgen.cxx','pytetgen/predicates.cxx','pytetgen/pytetgen.pyx'],
+                 compiler_directives={'language_level':3},
 		 include_dirs=[np.get_include()],
 		 extra_compile_args=['-g0','-O0','-DTETLIBRARY'],
                  language='c++'),
