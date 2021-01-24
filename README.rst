@@ -11,6 +11,8 @@ This is a python interface to tetgen, a powerful and fast mesh generator (http:/
 This package includes the tetgen source, v.1.5, and provides (so far) minimal bindings to be ables to generate 
 meshes in python. The basic interface follows (and can be used to replace) that of `scipy.spatial.Delaunay <https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.Delaunay.html>`_.
 
+2D points triangulation with consistent API is provided through `triangle <https://rufat.be/triangle/>`_.
+
 Basic Usage
 ===========
 
