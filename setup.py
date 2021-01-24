@@ -56,4 +56,5 @@ setup(	name = 'pytetgen',
                  language='c++'),
         ],
         cmdclass = {'build_ext': build_ext},
+        install_requires=['triangle>=20200424'],
 )
