@@ -7,10 +7,11 @@ cimport numpy as np
 import numpy as np
 from cpython.mem cimport PyMem_RawMalloc, PyMem_RawRealloc, PyMem_RawFree
 from libc.string cimport memcpy
+import triangle as tr
 
 class Delaunay(object):
     """ Calculate a Delaunay triangulation in 3D from a set of points
-    
+
         Parameters
         ----------
         points : ndarray of floats, shape (npoints, 3)
@@ -39,13 +40,13 @@ class Delaunay(object):
         Searching for neighboring tetrahedra (-1 means no neighbor).
         In the following example, the first tetrahedron has two neighbors,
         with index 1 and 2.
-        
+
         >>> points = np.array([1,1,1, 1,-1,-1, -1,1,-1, -1,-1,1,-1,-1,-1],dtype=np.float64).reshape(5,3)
         >>> tri = pytetgen.Delaunay(points)
         >>> print(tri.neighbors[0])
         [-1  2  1 -1]
-    
-        Searching for the tetrahedra containing a set of points. Two 
+
+        Searching for the tetrahedra containing a set of points. Two
         are withing the triangulation, and the third is out
 
         >>> p = np.array([[0.,0.,0.],[0.,0,-0.5],[50.,0.,1.]])
@@ -61,48 +62,66 @@ class Delaunay(object):
         points    :   ndarray of double, shape (npoints, ndim)
             Coordinates of input points.
 
-        simplices :   (ndarray of ints, shape (nsimplex, 4)) 
+        simplices :   (ndarray of ints, shape (nsimplex, 4))
             Indices of the points forming the simplices in the triangulation.
 
         vertices : deprecated alias for simplices
-    
+
         neighbors :   ndarray of ints, shape (nsimplex, ndim+1)
             Indices of neighbor simplices for each simplex.
             The kth neighbor is opposite to the kth vertex.
             For simplices at the boundary, -1 denotes no neighbor.
 
         weights :   ndarray of double, shape (npoints, )
-            Value of the weights associated to each point, or None. 
-            If not None, a regular triangulation (weighted Delaunay) 
+            Value of the weights associated to each point, or None.
+            If not None, a regular triangulation (weighted Delaunay)
             is performed, instead of the plain Delaunay triangulation
 
     """
 
     def __init__(self,points,neighbors=True,weights=None,_use_predicates=False,_quiet=True):
-
-        self._b = Tetgenbehavior() 
-        if _use_predicates == True:
-            self._b.noexact = False
-            self._b.nostaticfilter = True
-        self._b.quiet = _quiet 
-        self._b.nonodewritten = True
-        self._b.weighted = False
-        self._b.neighout = neighbors
-
-        self._datain = Tetgenio()
-        self._dataout = Tetgenio()
-        self._m = Tetgenmesh()
-        self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
+        points = np.asarray(points)
         if weights is not None:
-            self._datain.numberofpointattributes = 1
-            if len(weights) != self._datain.numberofpoints:
-                raise ValueError("weights must be in the same number of points")
-            self._datain.pointattributelist = np.ascontiguousarray(weights,dtype=np.float64)
-            self._b.weighted = True
-        else:
-            self._b.weighted = False
+            raise ValueError('weights not yet implemented, contact maintainer if you want this feature')
+        if points.ndim != 2 :
+            raise ValueError('points must be a two-dimensional array')
+            raise ValueError('points must be an array of 2D or 3D vectors')
 
-        Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
+        if points.shape[1] == 3:
+            self.dim = 3
+            self._b = Tetgenbehavior()
+            if _use_predicates == True:
+                self._b.noexact = False
+                self._b.nostaticfilter = True
+            self._b.quiet = _quiet
+            self._b.nonodewritten = True
+            self._b.weighted = False
+            self._b.neighout = neighbors
+
+            self._datain = Tetgenio()
+            self._dataout = Tetgenio()
+            self._m = Tetgenmesh()
+            self._datain.pointlist = np.ascontiguousarray(points,dtype=np.float64)
+            if weights is not None:
+                self._datain.numberofpointattributes = 1
+                if len(weights) != self._datain.numberofpoints:
+                    raise ValueError("weights must be in the same number of points")
+                self._datain.pointattributelist = np.ascontiguousarray(weights,dtype=np.float64)
+                self._b.weighted = True
+            else:
+                self._b.weighted = False
+
+            Tetrahedralize(self._b,self._datain,self._dataout,None,None,self._m)
+        elif points.shape[1] == 2:
+            self.dim = 2
+            self._points2d = points
+            trout = tr.triangulate({'vertices':points}, opts='Qzn')
+            self._simplices2d = trout['triangles']
+            self._vertices2d = self._simplices2d
+            self._neighbors2d =  trout['neighbors']
+        else:
+            raise ValueError('points must be an array of 2D or 3D vectors')
+
 
     def find_simplex(self,xi,bruteforce=False,tol=None):
         """ Find the simplices containing the given points.
@@ -114,13 +133,13 @@ class Delaunay(object):
             bruteforce: bool, optional
                 Does nothing, for compatibility with scipy.spatial.Delaunay
             tol: float, optional
-                Does nothing, for compatibility with scipy.spatial.Delaunay 
+                Does nothing, for compatibility with scipy.spatial.Delaunay
 
             Returns
             -------
             i : ndarray of int, same shape as xi
                 Indices of simplices containing each point. Points outside the triangulation get the value -1.
-        """    
+        """
         return self._m.locate(xi)
 
     def writevtk(self,filename):
@@ -136,35 +155,50 @@ class Delaunay(object):
 
     @property
     def simplices(self):
-        return self._dataout.tetrahedronlist
+        if self.dim == 2:
+            return self._simplices2d
+        else:
+            return self._dataout.tetrahedronlist
 
     @property
     def vertices(self):
-        return self._dataout.tetrahedronlist
+        if self.dim == 2:
+            return self._simplices2d
+        else:
+            return self._dataout.tetrahedronlist
 
     @property
     def points(self):
-        return self._datain.pointlist
+        if self.dim == 2:
+            return self._points2d
+        else:
+            return self._datain.pointlist
 
     @property
     def weights(self):
-        if self._b.weighted == True:
-            return self._datain.pointattributelist
-        return None
+        if self.dim == 2:
+            raise ValueError('not implemented for 2D points')
+        else:
+            if self._b.weighted == True:
+                return self._datain.pointattributelist
+            return None
 
     @property
     def neighbors(self):
-        return self._dataout.neighborlist
+        if self.dim == 2:
+            return self._neighbors2d
+        else:
+            return self._dataout.neighborlist
 
 
 
 cdef extern from "tetgen.h":
 
-    ctypedef double **tetrahedron 
+    ctypedef double **tetrahedron
 
     cdef cppclass tetgenio:
         tetgenio() except+
-        
+
         int numberofpoints, numberoftetrahedra, numberofcorners,mesh_dim
         int numberofpointattributes
         double * pointlist
@@ -228,15 +262,15 @@ cdef class Tetgenmesh:
         self.OUTSIDE = 1
         self.INTETRAHEDRON = 2
         self.ONFACE = 3
-        self.ONEDGE = 4 
+        self.ONEDGE = 4
         self.ONVERTEX = 5
-        self.ENCVERTEX = 6 
+        self.ENCVERTEX = 6
         self.ENCSEGMENT = 7
-        self.ENCSUBFACE = 8 
-        self.NEARVERTEX = 9 
+        self.ENCSUBFACE = 8
+        self.NEARVERTEX = 9
         self.NONREGULAR = 10
         self.INSTAR = 11
-        self.BADELEMENT = 12 
+        self.BADELEMENT = 12
 
     def locate(self,searchpt):
         if len(searchpt.shape) == 1: # a single point
@@ -246,7 +280,7 @@ cdef class Tetgenmesh:
         res = np.empty(npoints,dtype=np.int32)
         cdef np.float64_t[:] val_v = val
         cdef np.int32_t[:] res_v = res
-        cdef tetgenmesh.triface searchtet 
+        cdef tetgenmesh.triface searchtet
         searchtet.tet = NULL
         cdef int i,ret
 
@@ -357,7 +391,7 @@ cdef class Tetgenbehavior:
 
     @quiet.setter
     def quiet(self,val):
-        self.c_tetgenbehavior.quiet=val 
+        self.c_tetgenbehavior.quiet=val
 
     @property
     def nonodewritten(self):
@@ -365,7 +399,7 @@ cdef class Tetgenbehavior:
 
     @nonodewritten.setter
     def nonodewritten(self,val):
-        self.c_tetgenbehavior.nonodewritten=val 
+        self.c_tetgenbehavior.nonodewritten=val
 
     @property
     def noelewritten(self):
@@ -373,7 +407,7 @@ cdef class Tetgenbehavior:
 
     @noelewritten.setter
     def noelewritten(self,val):
-        self.c_tetgenbehavior.noelewritten=val 
+        self.c_tetgenbehavior.noelewritten=val
 
     @property
     def nofacewritten(self):
@@ -381,7 +415,7 @@ cdef class Tetgenbehavior:
 
     @nofacewritten.setter
     def nofacewritten(self,val):
-        self.c_tetgenbehavior.nofacewritten=val 
+        self.c_tetgenbehavior.nofacewritten=val
 
 
 
@@ -391,7 +425,7 @@ cdef class Tetgenbehavior:
 
     @noexact.setter
     def noexact(self,val):
-        self.c_tetgenbehavior.noexact=val 
+        self.c_tetgenbehavior.noexact=val
 
     @property
     def nostaticfilter(self):
@@ -399,7 +433,7 @@ cdef class Tetgenbehavior:
 
     @nostaticfilter.setter
     def nostaticfilter(self,val):
-        self.c_tetgenbehavior.noexact=val 
+        self.c_tetgenbehavior.noexact=val
 
 
     @property
@@ -408,7 +442,7 @@ cdef class Tetgenbehavior:
 
     @weighted.setter
     def weighted(self,val):
-        self.c_tetgenbehavior.weighted=val 
+        self.c_tetgenbehavior.weighted=val
 
 
     @property
@@ -416,6 +450,6 @@ cdef class Tetgenbehavior:
         return self.c_tetgenbehavior.neighout
     @neighout.setter
     def neighout(self,val):
-        self.c_tetgenbehavior.neighout=val 
+        self.c_tetgenbehavior.neighout=val
 
 
