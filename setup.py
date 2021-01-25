@@ -19,7 +19,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(	name = 'pytetgen',
 	packages=['pytetgen'],
-	version = '0.2.1',
+	version = '0.2.2',
 	description = 'wrapper for the tetgen mesh generator',
 	long_description=long_description,
 	author = 'Marcello Sega',
