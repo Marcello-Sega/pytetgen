@@ -1,4 +1,3 @@
-# cython: language_level=2
 # distutils: include_dirs = pytetgen
 # distutils: language=c++
 from distutils.core import setup
@@ -51,7 +50,7 @@ setup(	name = 'pytetgen',
         ext_modules=[
               Extension('pytetgen', 
                  sources=['pytetgen/tetgen.cxx','pytetgen/predicates.cxx','pytetgen/pytetgen.pyx'],
-                 compiler_directives={'language_level':3},
+                 compiler_directives={'language_level':2},
 		 include_dirs=[np.get_include()],
 		 extra_compile_args=['-g0','-O0','-DTETLIBRARY'],
                  language='c++'),
