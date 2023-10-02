@@ -1,3 +1,4 @@
+# cython: language_level=2
 # distutils: include_dirs = pytetgen
 # distutils: language=c++
 from distutils.core import setup
