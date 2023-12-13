@@ -1,3 +1,5 @@
+#!python
+# cython: language_level=3
 # -*- Mode: python; tab-width: 4; indent-tabs-mode:nil; coding: utf-8 -*-
 # vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 # distutils: language=c++
@@ -354,7 +356,7 @@ cdef class Tetgenio:
     def pointlist(self,val):
         flatval = np.ascontiguousarray(val.flatten())
         cdef int npoints = flatval.shape[0]
-        self.c_tetgenio.numberofpoints = npoints / <int>3
+        self.c_tetgenio.numberofpoints = npoints // <int>3
         cdef int size = 3*sizeof(double)*self.c_tetgenio.numberofpoints
         cdef np.float64_t[:] view = flatval
         try:
